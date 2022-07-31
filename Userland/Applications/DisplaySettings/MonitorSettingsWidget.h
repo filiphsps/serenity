@@ -53,7 +53,9 @@ private:
     RefPtr<DisplaySettings::MonitorWidget> m_monitor_widget;
     RefPtr<GUI::ComboBox> m_screen_combo;
     RefPtr<GUI::ComboBox> m_resolution_combo;
+    RefPtr<GUI::RadioButton> m_display_scale_radio_0_5x;
     RefPtr<GUI::RadioButton> m_display_scale_radio_1x;
+    RefPtr<GUI::RadioButton> m_display_scale_radio_1_5x;
     RefPtr<GUI::RadioButton> m_display_scale_radio_2x;
     RefPtr<GUI::Label> m_dpi_label;
 

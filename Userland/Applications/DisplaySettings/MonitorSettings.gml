@@ -74,8 +74,20 @@
             }
 
             @GUI::RadioButton {
+                name: "scale_0_5x"
+                text: "0.5x"
+                fixed_width: 50
+            }
+
+            @GUI::RadioButton {
                 name: "scale_1x"
                 text: "1x"
+                fixed_width: 50
+            }
+
+            @GUI::RadioButton {
+                name: "scale_1_5x"
+                text: "1.5x"
                 fixed_width: 50
             }
 

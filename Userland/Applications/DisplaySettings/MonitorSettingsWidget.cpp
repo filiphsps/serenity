@@ -95,6 +95,18 @@ void MonitorSettingsWidget::create_frame()
         set_modified(true);
     };
 
+    m_display_scale_radio_0_5x = *find_descendant_of_type_named<GUI::RadioButton>("scale_0_5x");
+    m_display_scale_radio_0_5x->on_checked = [this](bool checked) {
+        if (checked) {
+            auto& selected_screen = m_screen_layout.screens[m_selected_screen_index];
+            selected_screen.scale_factor = 0.5;
+            // Try to auto re-arrange things if there are overlaps or disconnected screens
+            m_screen_layout.normalize();
+            m_monitor_widget->set_desktop_scale_factor(0.5);
+            m_monitor_widget->update();
+            set_modified(true);
+        }
+    };
     m_display_scale_radio_1x = *find_descendant_of_type_named<GUI::RadioButton>("scale_1x");
     m_display_scale_radio_1x->on_checked = [this](bool checked) {
         if (checked) {
@@ -103,6 +115,18 @@ void MonitorSettingsWidget::create_frame()
             // Try to auto re-arrange things if there are overlaps or disconnected screens
             m_screen_layout.normalize();
             m_monitor_widget->set_desktop_scale_factor(1);
+            m_monitor_widget->update();
+            set_modified(true);
+        }
+    };
+    m_display_scale_radio_1_5x = *find_descendant_of_type_named<GUI::RadioButton>("scale_1_5x");
+    m_display_scale_radio_1_5x->on_checked = [this](bool checked) {
+        if (checked) {
+            auto& selected_screen = m_screen_layout.screens[m_selected_screen_index];
+            selected_screen.scale_factor = 1.5;
+            // Try to auto re-arrange things if there are overlaps or disconnected screens
+            m_screen_layout.normalize();
+            m_monitor_widget->set_desktop_scale_factor(1.5);
             m_monitor_widget->update();
             set_modified(true);
         }
@@ -208,11 +232,14 @@ void MonitorSettingsWidget::selected_screen_index_or_resolution_changed()
         m_dpi_label->set_visible(false);
     }
 
-    if (screen.scale_factor != 1 && screen.scale_factor != 2) {
+    if (screen.scale_factor != 0.5f && screen.scale_factor != 1 && screen.scale_factor != 1.5f && screen.scale_factor != 2) {
         dbgln("unexpected ScaleFactor {}, setting to 1", screen.scale_factor);
         screen.scale_factor = 1;
     }
-    (screen.scale_factor == 1 ? m_display_scale_radio_1x : m_display_scale_radio_2x)->set_checked(true, GUI::AllowCallback::No);
+    if (screen.scale_factor == 0.5f) m_display_scale_radio_0_5x->set_checked(true, GUI::AllowCallback::No);
+    else if (screen.scale_factor == 1) m_display_scale_radio_1x->set_checked(true, GUI::AllowCallback::No);
+    else if (screen.scale_factor == 1.5f) m_display_scale_radio_1_5x->set_checked(true, GUI::AllowCallback::No);
+    else if (screen.scale_factor == 2) m_display_scale_radio_2x->set_checked(true, GUI::AllowCallback::No);
     m_monitor_widget->set_desktop_scale_factor(screen.scale_factor);
 
     // Select the current selected resolution as it may differ

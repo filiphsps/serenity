@@ -24,11 +24,11 @@ public:
             Virtual,
         } mode;
         Optional<String> device;
-        Gfx::IntPoint location;
+        Gfx::FloatPoint location;
         Gfx::IntSize resolution;
-        int scale_factor;
+        float scale_factor;
 
-        Gfx::IntRect virtual_rect() const
+        Gfx::FloatRect virtual_rect() const
         {
             return { location, { resolution.width() / scale_factor, resolution.height() / scale_factor } };
         }

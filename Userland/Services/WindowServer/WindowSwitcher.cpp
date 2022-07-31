@@ -174,7 +174,7 @@ void WindowSwitcher::draw()
     //        That would require adding support for event handling to overlays.
     if (auto* shadow_bitmap = WindowManager::the().overlay_rect_shadow()) {
         // FIXME: Support other scale factors.
-        int scale_factor = 1;
+        float scale_factor = 1;
         Gfx::StylePainter::paint_simple_rect_shadow(painter, rect, shadow_bitmap->bitmap(scale_factor), true, true);
     }
 

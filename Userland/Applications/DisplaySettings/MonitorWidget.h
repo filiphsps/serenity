@@ -25,8 +25,8 @@ public:
     void set_desktop_resolution(Gfx::IntSize resolution);
     Gfx::IntSize desktop_resolution();
 
-    void set_desktop_scale_factor(int scale_factor) { m_desktop_scale_factor = scale_factor; }
-    int desktop_scale_factor() const { return m_desktop_scale_factor; }
+    void set_desktop_scale_factor(float scale_factor) { m_desktop_scale_factor = scale_factor; }
+    float desktop_scale_factor() const { return m_desktop_scale_factor; }
 
     void set_background_color(Gfx::Color background_color);
     Gfx::Color background_color();
@@ -47,7 +47,7 @@ private:
     RefPtr<Gfx::Bitmap> m_wallpaper_bitmap;
     String m_desktop_wallpaper_mode;
     Gfx::IntSize m_desktop_resolution;
-    int m_desktop_scale_factor { 1 };
+    float m_desktop_scale_factor { 1 };
     Gfx::Color m_desktop_color;
 
     bool is_different_to_current_wallpaper_path(String const& path)

@@ -158,7 +158,7 @@ public:
 
     int width() const { return m_virtual_rect.width(); }
     int height() const { return m_virtual_rect.height(); }
-    int scale_factor() const { return screen_layout_info().scale_factor; }
+    float scale_factor() const { return screen_layout_info().scale_factor; }
 
     Gfx::ARGB32* scanline(int buffer_index, int y);
 

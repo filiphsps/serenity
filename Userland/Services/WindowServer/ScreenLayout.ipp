@@ -63,7 +63,7 @@ bool ScreenLayout::is_valid(String* error_msg) const
                 *error_msg = String::formatted("Screen #{} has invalid resolution: {}", i, screen.resolution);
             return false;
         }
-        if (screen.scale_factor < 1) {
+        if (screen.scale_factor < 0.5f) {
             if (error_msg)
                 *error_msg = String::formatted("Screen #{} has invalid scale factor: {}", i, screen.scale_factor);
             return false;
@@ -110,20 +110,20 @@ bool ScreenLayout::is_valid(String* error_msg) const
 bool ScreenLayout::normalize()
 {
     // Check for any overlaps and try to move screens
-    Vector<Gfx::IntRect, 8> screen_virtual_rects;
+    Vector<Gfx::FloatRect, 8> screen_virtual_rects;
     for (auto& screen : screens)
         screen_virtual_rects.append(screen.virtual_rect());
 
     bool did_change = false;
     for (;;) {
         // Separate any overlapping screens
-        if (Gfx::IntRect::disperse(screen_virtual_rects)) {
+        if (Gfx::FloatRect::disperse(screen_virtual_rects)) {
             did_change = true;
             continue;
         }
 
         // Check if all screens are still reachable
-        Vector<Gfx::IntRect*, 8> reachable_rects;
+        Vector<Gfx::FloatRect*, 8> reachable_rects;
 
         auto recalculate_reachable = [&]() {
             reachable_rects = { &screen_virtual_rects[main_screen_index] };
@@ -151,7 +151,7 @@ bool ScreenLayout::normalize()
                     continue;
 
                 float closest_distance = 0;
-                Gfx::IntRect* closest_rect = nullptr;
+                Gfx::FloatRect* closest_rect = nullptr;
                 for (auto& screen_rect2 : screen_virtual_rects) {
                     if (&screen_rect2 == &screen_rect)
                         continue;
@@ -252,7 +252,7 @@ bool ScreenLayout::load_config(const Core::ConfigFile& config_file, String* erro
         screens.append({ mode, device,
             { config_file.read_num_entry(group_name, "Left"), config_file.read_num_entry(group_name, "Top") },
             { config_file.read_num_entry(group_name, "Width"), config_file.read_num_entry(group_name, "Height") },
-            config_file.read_num_entry(group_name, "ScaleFactor", 1) });
+            static_cast<float>(atof(config_file.read_entry(group_name, "ScaleFactor", "1").characters())) });
     }
     if (!is_valid(error_msg)) {
         *this = {};
@@ -276,7 +276,7 @@ bool ScreenLayout::save_config(Core::ConfigFile& config_file, bool sync) const
         config_file.write_num_entry(group_name, "Top", screen.location.y());
         config_file.write_num_entry(group_name, "Width", screen.resolution.width());
         config_file.write_num_entry(group_name, "Height", screen.resolution.height());
-        config_file.write_num_entry(group_name, "ScaleFactor", screen.scale_factor);
+        config_file.write_entry(group_name, "ScaleFactor", String::formatted("{}", screen.scale_factor));
         index++;
     }
     // Prune screens no longer in the layout
@@ -336,12 +336,12 @@ bool ScreenLayout::try_auto_add_display_connector(String const& device_path)
         mode_setting.vertical_active = main_screen.resolution.height();
     }
 
-    auto append_screen = [&](Gfx::IntRect const& new_screen_rect) {
+    auto append_screen = [&](Gfx::FloatRect const& new_screen_rect) {
         screens.append({ .mode = Screen::Mode::Device,
             .device = device_path,
             .location = new_screen_rect.location(),
-            .resolution = new_screen_rect.size(),
-            .scale_factor = 1 });
+            .resolution = Gfx::IntSize(new_screen_rect.size().height(),  new_screen_rect.size().width()),
+            .scale_factor = 1.0f });
     };
 
     if (screens.is_empty()) {
@@ -359,11 +359,11 @@ bool ScreenLayout::try_auto_add_display_connector(String const& device_path)
     // TODO: make this a little more sophisticated in case a more complex layout is already configured
     for (auto& screen : screens) {
         auto screen_rect = screen.virtual_rect();
-        Gfx::IntRect new_screen_rect {
+        Gfx::FloatRect new_screen_rect {
             screen_rect.right() + 1,
             screen_rect.top(),
-            (int)mode_setting.horizontal_active,
-            (int)mode_setting.vertical_active
+            (float)mode_setting.horizontal_active,
+            (float)mode_setting.vertical_active
         };
 
         bool collision = false;
@@ -406,11 +406,11 @@ ErrorOr<void> decode(Decoder& decoder, WindowServer::ScreenLayout::Screen& scree
     TRY(decoder.decode(mode));
     Optional<String> device;
     TRY(decoder.decode(device));
-    Gfx::IntPoint location;
+    Gfx::FloatPoint location;
     TRY(decoder.decode(location));
     Gfx::IntSize resolution;
     TRY(decoder.decode(resolution));
-    int scale_factor = 0;
+    float scale_factor = 0.0f;
     TRY(decoder.decode(scale_factor));
     screen = { mode, device, location, resolution, scale_factor };
     return {};
