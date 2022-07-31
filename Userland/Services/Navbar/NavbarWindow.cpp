@@ -59,17 +59,36 @@ NavbarWindow::NavbarWindow(NonnullRefPtr<GUI::Menu> start_menu)
 
     auto& main_widget = set_main_widget<NavbarWidget>();
     main_widget.set_layout<GUI::HorizontalBoxLayout>();
-    main_widget.layout()->set_margins({ 3, 3, 0, 3 });
+    main_widget.layout()->set_margins({ 5, 0, 5, 0 });
+
+    auto container = GUI::Widget::construct();
+    container->set_layout<GUI::HorizontalBoxLayout>();
+    container->layout()->set_margins({ 5, 15, 5, 15 });
+    main_widget.add_child(*container);
+
+    auto app_icon = GUI::Icon::default_icon("ladyball"sv);
+
+    auto padding = GUI::Widget::construct();
+    padding->set_fixed_size(width() / 2 - 108, 58);
+    container->add_child(*padding);
+
+    auto m_back_button = GUI::Button::construct("Back");
+    m_back_button->set_fixed_size(58, 58);
+    container->add_child(*m_back_button);
 
     m_start_button = GUI::Button::construct();
     m_start_button->set_fixed_size(58, 58);
-    auto app_icon = GUI::Icon::default_icon("ladyball"sv);
     m_start_button->set_icon(app_icon.bitmap_for_size(42));
     m_start_button->set_menu(m_start_menu);
+    container->add_child(*m_start_button);
 
-    main_widget.add_child(*m_start_button);
+    auto m_task_button = GUI::Button::construct("Search");
+    m_task_button->set_fixed_size(58, 58);
+    container->add_child(*m_task_button);
 
-    m_task_button_container = main_widget.add<GUI::Widget>();
+    container->add_child(*padding);
+
+    /*m_task_button_container = main_widget.add<GUI::Widget>();
     m_task_button_container->set_layout<GUI::HorizontalBoxLayout>();
     m_task_button_container->layout()->set_spacing(3);
 
@@ -81,7 +100,7 @@ NavbarWindow::NavbarWindow(NonnullRefPtr<GUI::Menu> start_menu)
     m_show_desktop_button->set_button_style(Gfx::ButtonStyle::Coolbar);
     m_show_desktop_button->set_fixed_size(58, 58);
     m_show_desktop_button->on_click = NavbarWindow::show_desktop_button_clicked;
-    main_widget.add_child(*m_show_desktop_button);
+    main_widget.add_child(*m_show_desktop_button);*/
 }
 
 void NavbarWindow::show_desktop_button_clicked(unsigned)
@@ -91,7 +110,12 @@ void NavbarWindow::show_desktop_button_clicked(unsigned)
 
 void NavbarWindow::toggle_show_desktop()
 {
-    GUI::ConnectionToWindowManagerServer::the().async_toggle_show_desktop();
+    /*WindowList::the().for_each_window([&](auto& window) {
+        if (window.title() != "Start")
+            return;
+        
+        window.set_minimized(!window.is_minimized());
+    });*/
 }
 
 void NavbarWindow::on_screen_rects_change(Vector<Gfx::IntRect, 4> const& rects, size_t main_screen_index)
@@ -112,9 +136,9 @@ NonnullRefPtr<GUI::Button> NavbarWindow::create_button(WindowIdentifier const& i
     return button;
 }
 
-void NavbarWindow::add_window_button(::Window& window, WindowIdentifier const& identifier)
+void NavbarWindow::add_window_button(::Window&, WindowIdentifier const&)
 {
-    if (window.button())
+    /*if (window.button())
         return;
     window.set_button(create_button(identifier));
     auto* button = window.button();
@@ -130,7 +154,7 @@ void NavbarWindow::add_window_button(::Window& window, WindowIdentifier const& i
         } else {
             GUI::ConnectionToWindowManagerServer::the().async_set_window_minimized(identifier.client_id(), identifier.window_id(), true);
         }
-    };
+    };*/
 }
 
 void NavbarWindow::remove_window_button(::Window& window, bool was_removed)

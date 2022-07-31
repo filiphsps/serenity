@@ -31,7 +31,7 @@ Compositor& Compositor::the()
     return s_the;
 }
 
-static WallpaperMode mode_to_enum(String const& name)
+static WallpaperMode wallpaper_mode_to_enum(String const& name)
 {
     if (name == "tile")
         return WallpaperMode::Tile;
@@ -40,6 +40,15 @@ static WallpaperMode mode_to_enum(String const& name)
     if (name == "center")
         return WallpaperMode::Center;
     return WallpaperMode::Center;
+}
+
+static InterfaceMode interface_mode_to_enum(String const& name)
+{
+    if (name == "mobile")
+        return InterfaceMode::Mobile;
+    if (name == "desktop")
+        return InterfaceMode::Desktop;
+    return InterfaceMode::Desktop;
 }
 
 Compositor::Compositor()
@@ -139,7 +148,8 @@ void Compositor::did_construct_window_manager(Badge<WindowManager>)
 
     m_current_window_stack = &wm.current_window_stack();
 
-    m_wallpaper_mode = mode_to_enum(wm.config()->read_entry("Background", "Mode", "center"));
+    m_interface_mode = interface_mode_to_enum(wm.config()->read_entry("Interface", "Mode", "desktop"));
+    m_wallpaper_mode = wallpaper_mode_to_enum(wm.config()->read_entry("Background", "Mode", "center"));
     m_custom_background_color = Color::from_string(wm.config()->read_entry("Background", "Color", ""));
 
     invalidate_screen();
@@ -794,6 +804,20 @@ bool Compositor::set_background_color(String const& background_color)
     return succeeded;
 }
 
+bool Compositor::set_interface_mode(String const& mode)
+{
+    auto& wm = WindowManager::the();
+    wm.config()->write_entry("Interface", "Mode", mode);
+    bool succeeded = !wm.config()->sync().is_error();
+
+    if (succeeded) {
+        m_interface_mode = interface_mode_to_enum(mode);
+        Compositor::invalidate_screen();
+    }
+
+    return succeeded;
+}
+
 bool Compositor::set_wallpaper_mode(String const& mode)
 {
     auto& wm = WindowManager::the();
@@ -801,7 +825,7 @@ bool Compositor::set_wallpaper_mode(String const& mode)
     bool succeeded = !wm.config()->sync().is_error();
 
     if (succeeded) {
-        m_wallpaper_mode = mode_to_enum(mode);
+        m_wallpaper_mode = wallpaper_mode_to_enum(mode);
         Compositor::invalidate_screen();
     }
 

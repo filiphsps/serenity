@@ -32,6 +32,11 @@ enum class WallpaperMode {
     Unchecked
 };
 
+enum class InterfaceMode {
+    Desktop,
+    Mobile
+};
+
 struct CompositorScreenData {
     RefPtr<Gfx::Bitmap> m_front_bitmap;
     RefPtr<Gfx::Bitmap> m_back_bitmap;
@@ -102,6 +107,8 @@ public:
     void screen_resolution_changed();
 
     bool set_background_color(String const& background_color);
+
+    bool set_interface_mode(String const& mode);
 
     bool set_wallpaper_mode(String const& mode);
 
@@ -227,6 +234,7 @@ private:
     Gfx::DisjointRectSet m_opaque_wallpaper_rects;
     Gfx::DisjointRectSet m_transparent_wallpaper_rects;
 
+    InterfaceMode m_interface_mode { InterfaceMode::Desktop };
     WallpaperMode m_wallpaper_mode { WallpaperMode::Unchecked };
     RefPtr<Gfx::Bitmap> m_wallpaper;
 
