@@ -6,11 +6,13 @@
 
 #include "Tile.h"
 #include <AK/Random.h>
+#include <LibCore/DateTime.h>
 #include <LibGUI/Label.h>
 #include <LibGUI/Icon.h>
 #include <LibGUI/Painter.h>
 #include <LibGfx/Palette.h>
 #include <LibGfx/StylePainter.h>
+#include <LibGfx/Font/FontDatabase.h>
 
 Tile::Tile()
 {
@@ -20,6 +22,9 @@ Tile::Tile()
 
 void Tile::tick()
 {
+    if (!animated())
+        return;
+
     m_tick += 1;
 
     if (!m_animation_started && m_tick >= m_animation_start) {
@@ -36,7 +41,89 @@ void Tile::tick()
         m_round_trips += 1;
     }
     
-    invalidate_layout();
+    repaint();
+}
+
+void Tile::draw_normal_tile(GUI::Painter painter, Gfx::IntRect icon_rect, Gfx::IntRect content_rect, bool draw_content)
+{
+    if (draw_content)
+        painter.draw_text(content_rect, m_content, this->font(), m_content_alignment, palette().color(foreground_role()), Gfx::TextElision::Right, Gfx::TextWrapping::Wrap);
+
+    auto icon_location = icon_rect.center().translated(-(icon()->width() / 2), -(icon()->height() / 2));
+    painter.blit(icon_location, *icon(), icon()->rect());
+}
+
+void Tile::draw_date_tile(GUI::Painter painter)
+{
+    painter.draw_text(rect().translated(0, this->font().x_height()), Core::DateTime::now().to_string("%A"sv), this->font(), Gfx::TextAlignment::Center, palette().color(foreground_role()), Gfx::TextElision::Right, Gfx::TextWrapping::Wrap);
+    painter.draw_text(rect().translated(0, -(this->font().x_height())), Core::DateTime::now().to_string("%e"sv), this->font().bold_variant(), Gfx::TextAlignment::Center, palette().color(foreground_role()), Gfx::TextElision::Right, Gfx::TextWrapping::Wrap);
+}
+
+void Tile::draw_tile(GUI::Painter painter, Tile::Animation animation_state)
+{
+    switch(m_kind) {
+        case TileKind::Date:
+            draw_date_tile(painter);
+            break;
+        case TileKind::Normal:
+        default:
+            draw_normal_tile(painter, animation_state.icon_rect, animation_state.content_rect, animation_state.draw_content);
+            break;
+    }
+
+    if(m_branding == TileBranding::Label) {
+        auto text_location = rect().translated(6, -6);
+        if (m_content_alignment == Gfx::TextAlignment::BottomLeft)
+            text_location = Gfx::Rect(animation_state.icon_rect).translated(6, -6);
+
+        paint_text(painter, text_location, this->font(), Gfx::TextAlignment::BottomLeft);
+    }
+}
+
+Tile::Animation Tile::process_animation()
+{
+    auto icon_rect = rect();
+    auto content_rect = Gfx::Rect(rect()).shrunken(12, 12).translated(0, -3);
+
+    int y_translation = 0;
+    if (animated() && m_tick >= animation_idle()) {
+        const int tick = m_tick - animation_idle();
+
+        if (tick >= animation_idle()+ animation_duration()) {
+            // Content to icon
+            y_translation = content_rect.height() - content_rect.height() * pow(0.85, tick - (animation_idle() + animation_duration()));
+            if (y_translation + 3 > content_rect.height())
+                y_translation = content_rect.height();
+
+            icon_rect.translate_by(0, -content_rect.height() + y_translation);
+        } else if (tick >= animation_duration()) {
+            // Idle at content
+            icon_rect.translate_by(0, -content_rect.height());
+        } else {
+            // Icon to content
+            y_translation = content_rect.height() - content_rect.height() * pow(0.85, tick);
+            if (y_translation > content_rect.height())
+                y_translation = content_rect.height();
+
+            icon_rect.translate_by(0, -y_translation);
+        }
+    }
+
+    bool show_content = false;
+    if (animated() && m_tick >= animation_idle()) {
+        if (m_tick >= animation_idle() + animation_duration())
+            content_rect.translate_by(0, content_rect.top() + y_translation);
+        else
+            content_rect.translate_by(0, content_rect.bottom() - y_translation);
+
+        show_content = true;
+    }
+
+    return {
+        icon_rect,
+        content_rect,
+        show_content
+    };
 }
 
 void Tile::paint_event(GUI::PaintEvent& event)
@@ -46,56 +133,6 @@ void Tile::paint_event(GUI::PaintEvent& event)
 
     Gfx::StylePainter::paint_tile(painter, rect(), palette(), is_being_pressed(), is_hovered());
 
-    auto content_rect = rect();
-
-    int y_translation = 0;
-    if (m_animation_enabled && m_tick >= animation_idle()) {
-        const int h = height() - 5;
-        int ticks_per_pixel = 1.0 * animation_duration() / h;
-        if (ticks_per_pixel <= 0)
-            ticks_per_pixel = 1;
-
-        if (m_tick >= animation_idle() * 2 + animation_duration()) {
-            // Content to icon
-            y_translation = (m_tick - (animation_idle() * 2 + animation_duration())) / ticks_per_pixel;
-            
-            if (y_translation > h)
-                y_translation = h;
-
-            content_rect.translate_by(0, -h + y_translation);
-        } else if (m_tick >= animation_idle() + animation_duration()) {
-            // Idle at content
-            content_rect.translate_by(0, -h);
-        } else {
-            // Icon to content
-            y_translation = (m_tick - animation_idle()) / ticks_per_pixel;
-            if (y_translation > h)
-                y_translation = h;
-                
-            content_rect.translate_by(0, -y_translation);
-        }
-    }
-
-    if (m_animation_enabled && m_tick >= animation_idle()) {
-        // Show tile content
-        auto text_location = Gfx::Rect(rect()).shrunken(6, 6);
-
-        if (m_tick >= animation_idle() + animation_duration())
-            text_location.translate_by(0, text_location.top() + y_translation);
-        else
-            text_location.translate_by(0, text_location.bottom() - y_translation - 6);
-
-        if (m_tile_content_alignment == Gfx::TextAlignment::BottomLeft) {
-            text_location.translate_by(6, -6);
-        }
-
-        painter.draw_text(text_location, m_tile_content, this->font(), m_tile_content_alignment, palette().color(foreground_role()), Gfx::TextElision::Right, Gfx::TextWrapping::Wrap);
-    }
-
-    // Show tile icon+label
-    auto icon_location = content_rect.center().translated(-(icon()->width() / 2), -(icon()->height() / 2));
-    painter.blit(icon_location, *icon(), icon()->rect());
-
-    auto text_location = Gfx::Rect(content_rect.x() + 6, content_rect.y() - 6, width(), height());
-    paint_text(painter, text_location, this->font(), Gfx::TextAlignment::BottomLeft);
+    auto animation_state = process_animation();
+    draw_tile(painter, animation_state);
 }

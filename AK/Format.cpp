@@ -872,7 +872,7 @@ void set_debug_enabled(bool value)
 
 void vdbgln(StringView fmtstr, TypeErasedFormatParams& params)
 {
-    if (!is_debug_enabled)
+    if (true)
         return;
 
     StringBuilder builder;

@@ -85,20 +85,6 @@ NavbarWindow::NavbarWindow()
     container->add_child(*m_task_button);
 
     container->add_child(*padding);
-
-    /*m_task_button_container = main_widget.add<GUI::Widget>();
-    m_task_button_container->set_layout<GUI::HorizontalBoxLayout>();
-    m_task_button_container->layout()->set_spacing(3);
-
-    m_default_icon = Gfx::Bitmap::try_load_from_file("/res/icons/16x16/window.png"sv).release_value_but_fixme_should_propagate_errors();
-
-    m_show_desktop_button = GUI::Button::construct();
-    m_show_desktop_button->set_tooltip("Show Desktop");
-    m_show_desktop_button->set_icon(GUI::Icon::default_icon("desktop"sv).bitmap_for_size(42));
-    m_show_desktop_button->set_button_style(Gfx::ButtonStyle::Coolbar);
-    m_show_desktop_button->set_fixed_size(58, 58);
-    m_show_desktop_button->on_click = NavbarWindow::show_desktop_button_clicked;
-    main_widget.add_child(*m_show_desktop_button);*/
 }
 
 void NavbarWindow::show_desktop_button_clicked(unsigned)
@@ -108,12 +94,12 @@ void NavbarWindow::show_desktop_button_clicked(unsigned)
 
 void NavbarWindow::toggle_show_desktop()
 {
-    /*WindowList::the().for_each_window([&](auto& window) {
+    WindowList::the().for_each_window([&](auto& window) {
         if (window.title() != "Start")
             return;
         
         window.set_minimized(!window.is_minimized());
-    });*/
+    });
 }
 
 void NavbarWindow::on_screen_rects_change(Vector<Gfx::IntRect, 4> const& rects, size_t main_screen_index)

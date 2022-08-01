@@ -62,22 +62,22 @@ StartWindow::StartWindow()
     main_widget.set_layout<GUI::VerticalBoxLayout>();
     main_widget.layout()->set_margins({ 0, 0, 0, 0 });
 
-    auto& scroll_container = main_widget.add<GUI::ScrollableContainerWidget>();
     auto container = GUI::Widget::construct();
     container->set_layout<GUI::VerticalBoxLayout>();
-    container->layout()->set_margins({ 10, 5, 10, 5 });
+    container->layout()->set_margins({ 10, 0, 10, 0 });
 
+    auto& scroll_container = main_widget.add<GUI::ScrollableContainerWidget>();
+    scroll_container.set_should_hide_unnecessary_scrollbars(true);
     scroll_container.set_widget(container);
 
     Desktop::AppFile::for_each([&](auto af) {
-        if (access(af->executable().characters(), X_OK) == 0) {
+        if (access(af->executable().characters(), X_OK) == 0 && af->category() != "Settings"sv && !af->run_in_terminal()) {
             apps.append({ af->executable(), af->name(), af->category(), af->icon(), af->run_in_terminal() });
         }
     });
     quick_sort(apps, [](auto& a, auto& b) { return a.name < b.name; });
 
     int rows = apps.size() / 3;
-    dbgln("Apps: {}, Rows: {}", apps.size(), rows);
 
     int id = 0;
     for (int n = 1; n <= rows; n++) {
@@ -87,12 +87,17 @@ StartWindow::StartWindow()
 
         for (int i = 1; i <= 3; i++) {
             auto app = apps.at(id);
-            int size = (width() - 44) / 3;
+            int size = (width() - 34) / 3;
 
             auto& tile = row.add<Tile>();
             tile.set_fixed_size(size, size);
             tile.set_text(app.name);
             tile.set_icon(app.icon.bitmap_for_size(size));
+
+            if (app.name == "Browser") {
+                tile.set_fixed_size(size * 2 + 3, size);
+                i += 1;
+            }
 
             id += 1;
         }
@@ -106,7 +111,7 @@ void StartWindow::config_string_did_change(String const&, String const&, String 
 void StartWindow::on_screen_rects_change(Vector<Gfx::IntRect, 4> const& rects, size_t main_screen_index)
 {
     auto const& rect = rects[main_screen_index];
-    Gfx::IntRect new_rect { rect.x() - 2, rect.top() + 33, rect.width() + 20, rect.height() - (36 + 74) + 21 };
+    Gfx::IntRect new_rect { rect.x(), rect.top() + 33, rect.width() + 18, rect.height() - (36 + 74) + 3 };
     set_rect(new_rect);
 }
 
