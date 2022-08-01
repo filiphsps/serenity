@@ -23,7 +23,7 @@ public:
     static int navbar_icon_size() { return 42; }
 
 private:
-    explicit NavbarWindow(NonnullRefPtr<GUI::Menu> start_menu);
+    explicit NavbarWindow();
     static void show_desktop_button_clicked(unsigned);
     static void toggle_show_desktop();
     void set_quick_launch_button_data(GUI::Button&, String const&, NonnullRefPtr<Desktop::AppFile>);
@@ -38,9 +38,6 @@ private:
     virtual void wm_event(GUI::WMEvent&) override;
     virtual void screen_rects_change_event(GUI::ScreenRectsChangeEvent&) override;
 
-    void update_applet_area();
-
-    NonnullRefPtr<GUI::Menu> m_start_menu;
     RefPtr<GUI::Widget> m_task_button_container;
     RefPtr<Gfx::Bitmap> m_default_icon;
 

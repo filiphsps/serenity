@@ -49,8 +49,7 @@ private:
     }
 };
 
-NavbarWindow::NavbarWindow(NonnullRefPtr<GUI::Menu> start_menu)
-    : m_start_menu(move(start_menu))
+NavbarWindow::NavbarWindow()
 {
     set_window_type(GUI::WindowType::Taskbar);
     set_title("Navbar");
@@ -79,7 +78,6 @@ NavbarWindow::NavbarWindow(NonnullRefPtr<GUI::Menu> start_menu)
     m_start_button = GUI::Button::construct();
     m_start_button->set_fixed_size(58, 58);
     m_start_button->set_icon(app_icon.bitmap_for_size(42));
-    m_start_button->set_menu(m_start_menu);
     container->add_child(*m_start_button);
 
     auto m_task_button = GUI::Button::construct("Search");

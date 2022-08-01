@@ -241,6 +241,67 @@ void ClassicStylePainter::paint_button(Painter& painter, IntRect const& rect, Pa
     }
 }
 
+void ClassicStylePainter::paint_tile(Painter& painter, IntRect const& a_rect, Palette const& palette, bool pressed, bool hovered, bool focused)
+{
+    Color button_color = palette.button();
+    Color highlight_color = palette.threed_highlight();
+    Color shadow_color1 = palette.threed_shadow1();
+    Color shadow_color2 = palette.threed_shadow2();
+
+    if (hovered)
+        button_color = palette.hover_highlight();
+    else
+        button_color = palette.button();
+
+    PainterStateSaver saver(painter);
+
+    auto rect = a_rect;
+    if (focused) {
+        painter.draw_rect(a_rect, palette.threed_shadow2());
+        rect.shrink(2, 2);
+    }
+
+    painter.translate(rect.location());
+
+    if (pressed) {
+        // Base
+        Gfx::IntRect base_rect { 1, 1, rect.width() - 2, rect.height() - 2 };
+
+        painter.fill_rect(base_rect, button_color);
+
+        // Top shadow
+        painter.draw_line({ 0, 0 }, { rect.width() - 2, 0 }, shadow_color2);
+        painter.draw_line({ 0, 0 }, { 0, rect.height() - 2 }, shadow_color2);
+
+        // Sunken shadow
+        painter.draw_line({ 1, 1 }, { rect.width() - 3, 1 }, shadow_color1);
+        painter.draw_line({ 1, 2 }, { 1, rect.height() - 3 }, shadow_color1);
+
+        // Outer highlight
+        painter.draw_line({ 0, rect.height() - 1 }, { rect.width() - 1, rect.height() - 1 }, highlight_color);
+        painter.draw_line({ rect.width() - 1, 0 }, { rect.width() - 1, rect.height() - 2 }, highlight_color);
+
+        // Inner highlight
+        painter.draw_line({ 1, rect.height() - 2 }, { rect.width() - 2, rect.height() - 2 }, palette.button());
+        painter.draw_line({ rect.width() - 2, 1 }, { rect.width() - 2, rect.height() - 3 }, palette.button());
+    } else {
+        // Base
+        painter.fill_rect({ 0, 0, rect.width(), rect.height() }, button_color);
+
+        // Top highlight
+        painter.draw_line({ 0, 0 }, { rect.width() - 2, 0 }, highlight_color);
+        painter.draw_line({ 0, 0 }, { 0, rect.height() - 2 }, highlight_color);
+
+        // Outer shadow
+        painter.draw_line({ 0, rect.height() - 1 }, { rect.width() - 1, rect.height() - 1 }, shadow_color2);
+        painter.draw_line({ rect.width() - 1, 0 }, { rect.width() - 1, rect.height() - 2 }, shadow_color2);
+
+        // Inner shadow
+        painter.draw_line({ 1, rect.height() - 2 }, { rect.width() - 2, rect.height() - 2 }, shadow_color1);
+        painter.draw_line({ rect.width() - 2, 1 }, { rect.width() - 2, rect.height() - 3 }, shadow_color1);
+    }
+}
+
 void ClassicStylePainter::paint_frame(Painter& painter, IntRect const& rect, Palette const& palette, FrameShape shape, FrameShadow shadow, int thickness, bool skip_vertical_lines)
 {
     if (shape == Gfx::FrameShape::NoFrame)

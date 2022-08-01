@@ -28,7 +28,7 @@ public:
     virtual void config_string_did_change(String const&, String const&, String const&, String const&) override;
 
 private:
-    explicit TaskbarWindow();
+    explicit TaskbarWindow(NonnullRefPtr<GUI::Menu> start_menu);
     static void show_desktop_button_clicked(unsigned);
     static void toggle_show_desktop();
     void set_quick_launch_button_data(GUI::Button&, String const&, NonnullRefPtr<Desktop::AppFile>);
@@ -43,14 +43,19 @@ private:
     virtual void wm_event(GUI::WMEvent&) override;
     virtual void screen_rects_change_event(GUI::ScreenRectsChangeEvent&) override;
 
+    void update_applet_area();
+
     bool is_window_on_current_workspace(::Window&) const;
     void workspace_change_event(unsigned, unsigned);
 
     void set_start_button_font(Gfx::Font const&);
 
+    NonnullRefPtr<GUI::Menu> m_start_menu;
     RefPtr<GUI::Widget> m_task_button_container;
     RefPtr<Gfx::Bitmap> m_default_icon;
 
+    Gfx::IntSize m_applet_area_size;
+    RefPtr<GUI::Frame> m_applet_area_container;
     RefPtr<GUI::Button> m_start_button;
     RefPtr<GUI::Button> m_show_desktop_button;
     RefPtr<Taskbar::ClockWidget> m_clock_widget;

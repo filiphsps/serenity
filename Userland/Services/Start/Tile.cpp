@@ -31,8 +31,10 @@ void Tile::tick()
     if (!m_animation_started || m_tick < m_animation_start)
         return;
 
-    if (m_tick > (animation_idle() * 2) + (animation_duration() * 2))
+    if (m_tick > (animation_idle() * 2) + (animation_duration() * 2)) {
         m_tick = 0;
+        m_round_trips += 1;
+    }
     
     invalidate_layout();
 }
@@ -42,7 +44,7 @@ void Tile::paint_event(GUI::PaintEvent& event)
     GUI::Painter painter(*this);
     painter.add_clip_rect(event.rect());
 
-    Gfx::StylePainter::paint_button(painter, rect(), palette(), button_style(), is_being_pressed(), is_hovered(), is_checked(), true);
+    Gfx::StylePainter::paint_tile(painter, rect(), palette(), is_being_pressed(), is_hovered());
 
     auto content_rect = rect();
 
@@ -83,7 +85,11 @@ void Tile::paint_event(GUI::PaintEvent& event)
         else
             text_location.translate_by(0, text_location.bottom() - y_translation - 6);
 
-        painter.draw_text(text_location, "Hello world from tile content"sv, this->font(), Gfx::TextAlignment::Center, palette().color(foreground_role()), Gfx::TextElision::Right, Gfx::TextWrapping::Wrap);
+        if (m_tile_content_alignment == Gfx::TextAlignment::BottomLeft) {
+            text_location.translate_by(6, -6);
+        }
+
+        painter.draw_text(text_location, m_tile_content, this->font(), m_tile_content_alignment, palette().color(foreground_role()), Gfx::TextElision::Right, Gfx::TextWrapping::Wrap);
     }
 
     // Show tile icon+label

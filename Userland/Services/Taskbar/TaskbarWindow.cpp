@@ -52,7 +52,8 @@ private:
     }
 };
 
-TaskbarWindow::TaskbarWindow()
+TaskbarWindow::TaskbarWindow(NonnullRefPtr<GUI::Menu> start_menu)
+    : m_start_menu(move(start_menu))
 {
     set_window_type(GUI::WindowType::Taskbar);
     set_title("Taskbar");
@@ -68,6 +69,7 @@ TaskbarWindow::TaskbarWindow()
     m_start_button->set_icon_spacing(0);
     auto app_icon = GUI::Icon::default_icon("ladyball"sv);
     m_start_button->set_icon(app_icon.bitmap_for_size(16));
+    m_start_button->set_menu(m_start_menu);
 
     main_widget.add_child(*m_start_button);
     main_widget.add<Taskbar::QuickLaunchWidget>();
@@ -77,6 +79,11 @@ TaskbarWindow::TaskbarWindow()
     m_task_button_container->layout()->set_spacing(3);
 
     m_default_icon = Gfx::Bitmap::try_load_from_file("/res/icons/16x16/window.png"sv).release_value_but_fixme_should_propagate_errors();
+
+    m_applet_area_container = main_widget.add<GUI::Frame>();
+    m_applet_area_container->set_frame_thickness(1);
+    m_applet_area_container->set_frame_shape(Gfx::FrameShape::Box);
+    m_applet_area_container->set_frame_shadow(Gfx::FrameShadow::Sunken);
 
     m_clock_widget = main_widget.add<Taskbar::ClockWidget>();
 
@@ -92,9 +99,13 @@ TaskbarWindow::TaskbarWindow()
     m_assistant_app_file = Desktop::AppFile::open(af_path);
 }
 
-void TaskbarWindow::config_string_did_change(String const& domain, String const&, String const&, String const&)
+void TaskbarWindow::config_string_did_change(String const& domain, String const& group, String const& key, String const& value)
 {
     VERIFY(domain == "Taskbar");
+    if (group == "Clock" && key == "TimeFormat") {
+        m_clock_widget->update_format(value);
+        update_applet_area();
+    }
 }
 
 void TaskbarWindow::show_desktop_button_clicked(unsigned)
@@ -112,6 +123,18 @@ void TaskbarWindow::on_screen_rects_change(Vector<Gfx::IntRect, 4> const& rects,
     auto const& rect = rects[main_screen_index];
     Gfx::IntRect new_rect { rect.x(), rect.bottom() - taskbar_height() + 1, rect.width(), taskbar_height() };
     set_rect(new_rect);
+    update_applet_area();
+}
+
+void TaskbarWindow::update_applet_area()
+{
+    // NOTE: Widget layout is normally lazy, but here we have to force it right away so we can tell
+    //       WindowServer where to place the applet area window.
+    if (!main_widget())
+        return;
+    main_widget()->do_layout();
+    auto new_rect = Gfx::IntRect({}, m_applet_area_size).centered_within(m_applet_area_container->screen_relative_rect());
+    GUI::ConnectionToWindowManagerServer::the().async_set_applet_area_position(new_rect.location());
 }
 
 NonnullRefPtr<GUI::Button> TaskbarWindow::create_button(WindowIdentifier const& identifier)
@@ -298,6 +321,21 @@ void TaskbarWindow::wm_event(GUI::WMEvent& event)
             // would have been checked
             VERIFY(window.is_modal());
             update_window_button(*window_owner, window.is_active());
+        }
+        break;
+    }
+    case GUI::Event::WM_AppletAreaSizeChanged: {
+        auto& changed_event = static_cast<GUI::WMAppletAreaSizeChangedEvent&>(event);
+        m_applet_area_size = changed_event.size();
+        m_applet_area_container->set_fixed_size(changed_event.size().width() + 8, 21);
+        update_applet_area();
+        break;
+    }
+    case GUI::Event::WM_SuperKeyPressed: {
+        if (m_start_menu->is_visible()) {
+            m_start_menu->dismiss();
+        } else {
+            m_start_menu->popup(m_start_button->screen_relative_rect().top_left());
         }
         break;
     }
