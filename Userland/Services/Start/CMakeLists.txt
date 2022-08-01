@@ -7,6 +7,7 @@ serenity_component(
 set(SOURCES
     main.cpp
     StartWindow.cpp
+    Tile.cpp
 )
 
 serenity_bin(Start)

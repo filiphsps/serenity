@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2018-2021, Andreas Kling <kling@serenityos.org>
- * Copyright (c) 2021, Spencer Dixon <spencercdixon@gmail.com>
+ * Copyright (c) 2022, Filiph Sandstrom <filiph.sandstrom@filfatstudios.com>
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
 #include "StartWindow.h"
+#include "Tile.h"
 #include <AK/Debug.h>
 #include <AK/QuickSort.h>
 #include <LibGUI/BoxLayout.h>
@@ -79,18 +79,22 @@ StartWindow::StartWindow()
     int rows = apps.size() / 3;
     dbgln("Apps: {}, Rows: {}", apps.size(), rows);
 
+    int id = 0;
     for (int n = 1; n <= rows; n++) {
         auto& row = container->add<GUI::Widget>();
         row.set_layout<GUI::HorizontalBoxLayout>();
         row.layout()->set_margins({ 0, 5, 0, 5 });
 
         for (int i = 1; i <= 3; i++) {
-            auto app = apps.at(i * n);
+            auto app = apps.at(id);
+            int size = (width() - 44) / 3;
 
-            auto& button = row.add<GUI::Button>(app.name);
-            int size = (width() - 45) / 3;
-            button.set_fixed_size(size, size);
-            button.set_icon(app.icon.bitmap_for_size(112));
+            auto& tile = row.add<Tile>();
+            tile.set_fixed_size(size, size);
+            tile.set_text(app.name);
+            tile.set_icon(app.icon.bitmap_for_size(size));
+
+            id += 1;
         }
     }
 }
@@ -102,7 +106,7 @@ void StartWindow::config_string_did_change(String const&, String const&, String 
 void StartWindow::on_screen_rects_change(Vector<Gfx::IntRect, 4> const& rects, size_t main_screen_index)
 {
     auto const& rect = rects[main_screen_index];
-    Gfx::IntRect new_rect { rect.x(), rect.top() + 36, rect.width() + 18, rect.height() - (36 + 74) + 18 };
+    Gfx::IntRect new_rect { rect.x() - 2, rect.top() + 33, rect.width() + 20, rect.height() - (36 + 74) + 21 };
     set_rect(new_rect);
 }
 
