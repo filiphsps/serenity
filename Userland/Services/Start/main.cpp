@@ -33,17 +33,10 @@
 
 ErrorOr<int> serenity_main(Main::Arguments arguments)
 {
-    TRY(Core::System::pledge("stdio recvfd sendfd proc exec rpath unix sigaction"));
+    TRY(Core::System::pledge("stdio recvfd sendfd proc exec rpath unix"));
     auto app = TRY(GUI::Application::try_create(arguments));
     Config::pledge_domain("Start");
     Config::monitor_domain("Start");
-    app->event_loop().register_signal(SIGCHLD, [](int) {
-        // Wait all available children
-        while (waitpid(-1, nullptr, WNOHANG) > 0)
-            ;
-    });
-
-    TRY(Core::System::pledge("stdio recvfd sendfd proc exec rpath unix"));
 
     GUI::ConnectionToWindowManagerServer::the();
     Desktop::Launcher::ensure_connection();

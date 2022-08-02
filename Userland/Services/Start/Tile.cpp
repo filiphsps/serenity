@@ -16,6 +16,12 @@
 
 Tile::Tile()
 {
+    TileContent tile_content = {
+        TileContent::ContentKind::Branding,
+        TileContent::ContentAlignment::Center
+    };
+    m_contents.append(tile_content);
+
     m_animation_start = get_random_uniform(60 * 8) + animation_idle();
     start_timer(16);
 }
@@ -31,98 +37,117 @@ void Tile::tick()
         m_animation_started = true;
         m_tick = 0;
         return;
-    }
-
-    if (!m_animation_started || m_tick < m_animation_start)
+    } else if (!m_animation_started) {
         return;
-
-    if (m_tick > (animation_idle() * 2) + (animation_duration() * 2)) {
-        m_tick = 0;
-        m_round_trips += 1;
     }
     
     repaint();
 }
 
-void Tile::draw_normal_tile(GUI::Painter painter, Gfx::IntRect icon_rect, Gfx::IntRect content_rect, bool draw_content)
+void Tile::draw_branding_tile(GUI::Painter painter, Gfx::IntRect content_rect)
 {
-    if (draw_content)
-        painter.draw_text(content_rect, m_content, this->font(), m_content_alignment, palette().color(foreground_role()), Gfx::TextElision::Right, Gfx::TextWrapping::Wrap);
-
-    auto icon_location = icon_rect.center().translated(-(icon()->width() / 2), -(icon()->height() / 2));
-    painter.blit(icon_location, *icon(), icon()->rect());
+    painter.blit(content_rect.center().translated(-(icon()->width() / 2), -(icon()->height() / 2)), *icon(), icon()->rect());
+    paint_text(painter, content_rect.translated(6, -6), this->font(), Gfx::TextAlignment::BottomLeft);
 }
-
-void Tile::draw_date_tile(GUI::Painter painter)
+void Tile::draw_normal_tile(GUI::Painter painter, Gfx::IntRect content_rect, TileContent content)
 {
-    painter.draw_text(rect().translated(0, this->font().x_height()), Core::DateTime::now().to_string("%A"sv), this->font(), Gfx::TextAlignment::Center, palette().color(foreground_role()), Gfx::TextElision::Right, Gfx::TextWrapping::Wrap);
-    painter.draw_text(rect().translated(0, -(this->font().x_height())), Core::DateTime::now().to_string("%e"sv), this->font().bold_variant(), Gfx::TextAlignment::Center, palette().color(foreground_role()), Gfx::TextElision::Right, Gfx::TextWrapping::Wrap);
-}
-
-void Tile::draw_tile(GUI::Painter painter, Tile::Animation animation_state)
-{
-    switch(m_kind) {
-        case TileKind::Date:
-            draw_date_tile(painter);
+    auto alignment = Gfx::TextAlignment::BottomLeft;
+    switch (content.content_alignment) {
+        case TileContent::ContentAlignment::Center:
+            alignment = Gfx::TextAlignment::Center;
             break;
-        case TileKind::Normal:
+        case TileContent::ContentAlignment::Bottom:
         default:
-            draw_normal_tile(painter, animation_state.icon_rect, animation_state.content_rect, animation_state.draw_content);
+            alignment = Gfx::TextAlignment::BottomLeft;
             break;
     }
 
-    if(m_branding == TileBranding::Label) {
-        auto text_location = rect().translated(6, -6);
-        if (m_content_alignment == Gfx::TextAlignment::BottomLeft)
-            text_location = Gfx::Rect(animation_state.icon_rect).translated(6, -6);
-
-        paint_text(painter, text_location, this->font(), Gfx::TextAlignment::BottomLeft);
-    }
+    painter.draw_text(content_rect.shrunken(12, 12), content.content, this->font(), alignment, palette().color(foreground_role()), Gfx::TextElision::Right, Gfx::TextWrapping::Wrap);
+}
+void Tile::draw_date_tile(GUI::Painter painter, Gfx::IntRect content_rect)
+{
+    painter.draw_text(content_rect.translated(0, -(this->font().x_height())), Core::DateTime::now().to_string("%A"sv), this->font(), Gfx::TextAlignment::Center, palette().color(foreground_role()), Gfx::TextElision::Right, Gfx::TextWrapping::Wrap);
+    painter.draw_text(content_rect.translated(0, this->font().x_height()), Core::DateTime::now().to_string("%e"sv), this->font().bold_variant(), Gfx::TextAlignment::Center, palette().color(foreground_role()), Gfx::TextElision::Right, Gfx::TextWrapping::Wrap);
 }
 
-Tile::Animation Tile::process_animation()
+void Tile::tick_tile(GUI::Painter painter)
 {
-    auto icon_rect = rect();
-    auto content_rect = Gfx::Rect(rect()).shrunken(12, 12).translated(0, -3);
+    const int stages = m_contents.size() - 1;
+    VERIFY(stages >= 0);
 
-    int y_translation = 0;
-    if (animated() && m_tick >= animation_idle()) {
-        const int tick = m_tick - animation_idle();
+    const auto stage_duration = animation_idle() + animation_duration();
 
-        if (tick >= animation_idle()+ animation_duration()) {
-            // Content to icon
-            y_translation = content_rect.height() - content_rect.height() * pow(0.85, tick - (animation_idle() + animation_duration()));
-            if (y_translation + 3 > content_rect.height())
-                y_translation = content_rect.height();
+    // Include the fade to first stage duration too
+    if (m_tick >= (stages + 1) * stage_duration)
+        m_tick = 0;
 
-            icon_rect.translate_by(0, -content_rect.height() + y_translation);
-        } else if (tick >= animation_duration()) {
-            // Idle at content
-            icon_rect.translate_by(0, -content_rect.height());
-        } else {
-            // Icon to content
-            y_translation = content_rect.height() - content_rect.height() * pow(0.85, tick);
-            if (y_translation > content_rect.height())
-                y_translation = content_rect.height();
+    // Each stage has one in animation and one idle wait
+    const auto stage = m_tick / stage_duration;
 
-            icon_rect.translate_by(0, -y_translation);
+    // Find the curent stage's actual tick
+    const auto actual_tick = m_tick - (stage * stage_duration);
+    const auto in_transition = actual_tick <= animation_duration();
+
+    TileContent previous_content;
+    TileContent current_content;
+
+    if (stage == 0) {
+        previous_content = m_contents.last();
+    } else {
+        previous_content = m_contents[stage - 1];
+    }
+
+    if (stage == stages) {
+        current_content = m_contents.last();
+    } else {
+        current_content = m_contents[stage];
+    }
+
+    auto previous_content_rect = rect().translated(0, -height());
+    auto current_content_rect = rect();
+    
+    if (in_transition) {
+        auto animation_state = process_animation(actual_tick);
+        previous_content_rect = animation_state.previous_rect;
+        current_content_rect = animation_state.current_rect;
+    }
+
+    for (int i = in_transition ? 0 : 1; i < 2; i++) {
+        auto content = i == 0 ? previous_content : current_content;
+        auto content_rect = i == 0 ? previous_content_rect : current_content_rect;
+
+        switch(content.content_kind) {
+            case TileContent::ContentKind::Branding:
+                draw_branding_tile(painter, content_rect);
+                break;
+            case TileContent::ContentKind::Normal:
+                draw_normal_tile(painter, content_rect, content);
+                break;
+            case TileContent::ContentKind::Date:
+                draw_date_tile(painter, content_rect);
+                break;
+            default:
+                VERIFY_NOT_REACHED();
         }
     }
+}
 
-    bool show_content = false;
-    if (animated() && m_tick >= animation_idle()) {
-        if (m_tick >= animation_idle() + animation_duration())
-            content_rect.translate_by(0, content_rect.top() + y_translation);
-        else
-            content_rect.translate_by(0, content_rect.bottom() - y_translation);
+Tile::Animation Tile::process_animation(int tick)
+{
+    // TODO: type & direction
+    auto previous_rect = rect();
+    auto current_rect = rect();
 
-        show_content = true;
-    }
+    auto y_translation = current_rect.height() - current_rect.height() * pow(0.8, tick);
+    if (y_translation > current_rect.height())
+        y_translation = current_rect.height();
+
+    previous_rect.translate_by(0, -y_translation);
+    current_rect.translate_by(0, current_rect.bottom() - y_translation);
 
     return {
-        icon_rect,
-        content_rect,
-        show_content
+        previous_rect,
+        current_rect
     };
 }
 
@@ -133,6 +158,5 @@ void Tile::paint_event(GUI::PaintEvent& event)
 
     Gfx::StylePainter::paint_tile(painter, rect(), palette(), is_being_pressed(), is_hovered());
 
-    auto animation_state = process_animation();
-    draw_tile(painter, animation_state);
+    tick_tile(painter);
 }

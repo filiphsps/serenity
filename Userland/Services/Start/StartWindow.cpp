@@ -87,7 +87,7 @@ StartWindow::StartWindow()
 
         for (int i = 1; i <= 3; i++) {
             auto app = apps.at(id);
-            int size = (width() - 34) / 3;
+            auto size = (width() - 34) / 3;
 
             auto& tile = row.add<Tile>();
             tile.set_fixed_size(size, size);
