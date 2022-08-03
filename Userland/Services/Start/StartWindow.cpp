@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include "GridLayout.h"
 #include "StartWindow.h"
 #include "Tile.h"
 #include <AK/Debug.h>
@@ -50,6 +51,7 @@ struct AppMetadata {
 };
 Vector<AppMetadata> apps;
 
+const int ITEM_SIZE = 114;
 StartWindow::StartWindow()
 {
     set_window_type(GUI::WindowType::Taskbar);
@@ -63,8 +65,10 @@ StartWindow::StartWindow()
     main_widget.layout()->set_margins({ 0, 0, 0, 0 });
 
     auto container = GUI::Widget::construct();
-    container->set_layout<GUI::VerticalBoxLayout>();
-    container->layout()->set_margins({ 10, 0, 10, 0 });
+    container->set_layout<GridLayout>();
+    container->layout()->set_margins({ 4, 4, 4, 4 });
+    static_cast<GridLayout*>(container->layout())->set_item_size(ITEM_SIZE);
+    static_cast<GridLayout*>(container->layout())->set_columns(3);
 
     auto& scroll_container = main_widget.add<GUI::ScrollableContainerWidget>();
     scroll_container.set_should_hide_unnecessary_scrollbars(true);
@@ -77,30 +81,13 @@ StartWindow::StartWindow()
     });
     quick_sort(apps, [](auto& a, auto& b) { return a.name < b.name; });
 
-    int rows = apps.size() / 3;
+    for (size_t n = 0; n < apps.size(); n++) {
+        auto app = apps.at(n);
 
-    int id = 0;
-    for (int n = 1; n <= rows; n++) {
-        auto& row = container->add<GUI::Widget>();
-        row.set_layout<GUI::HorizontalBoxLayout>();
-        row.layout()->set_margins({ 0, 5, 0, 5 });
-
-        for (int i = 1; i <= 3; i++) {
-            auto app = apps.at(id);
-            auto size = (width() - 34) / 3;
-
-            auto& tile = row.add<Tile>();
-            tile.set_fixed_size(size, size);
-            tile.set_text(app.name);
-            tile.set_icon(app.icon.bitmap_for_size(size));
-
-            if (app.name == "Browser") {
-                tile.set_fixed_size(size * 2 + 3, size);
-                i += 1;
-            }
-
-            id += 1;
-        }
+        auto& tile = container->add<Tile>();
+        tile.set_text(app.name);
+        tile.set_icon(app.icon.bitmap_for_size(ITEM_SIZE));
+        tile.set_fixed_size(ITEM_SIZE, ITEM_SIZE);
     }
 }
 

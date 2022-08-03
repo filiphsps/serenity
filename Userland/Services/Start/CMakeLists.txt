@@ -5,6 +5,7 @@ serenity_component(
 )
 
 set(SOURCES
+    GridLayout.cpp
     main.cpp
     StartWindow.cpp
     Tile.cpp

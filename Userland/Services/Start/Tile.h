@@ -10,6 +10,7 @@
 #include <AK/Vector.h>
 #include <LibGUI/Button.h>
 #include <LibGfx/Bitmap.h>
+
 class Tile final : public GUI::Button {
     C_OBJECT(Tile);
 
@@ -95,7 +96,7 @@ public:
             });
         } else if (label == "Character Map") {
             m_animation = TileAnimation::Slide;
-            
+
             m_contents.append({
                 TileContent::ContentKind::Normal,
                 TileContent::ContentAlignment::Bottom,
