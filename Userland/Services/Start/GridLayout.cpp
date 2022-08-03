@@ -17,21 +17,15 @@ GUI::UISize GridLayout::preferred_size() const
 
 GUI::UISize GridLayout::min_size() const
 {
-    int items = 0;
-    for (size_t i = 0; i < m_entries.size(); ++i) {
-        auto& entry = m_entries[i];
-        if (!entry.widget)
-            continue;
-        if (!entry.widget->is_visible())
-            continue;
+    GUI::UIDimension columns { m_item_size * m_columns };
 
-        items += 1;
+    if (!auto_layout()) {
+        GUI::UIDimension rows { (m_item_size + margins().top()) * (static_cast<int>(m_entries.size()) / m_columns) + margins().top() };
+        return { columns, rows };
     }
 
-    GUI::UIDimension columns { m_item_size * m_columns };
-    GUI::UIDimension rows { (m_item_size + margins().top()) * (items / m_columns) };
-
-    return { columns, rows };
+    // FIXME: Calculate width & height when using auto_layout.
+    VERIFY_NOT_REACHED();
 }
 
 void GridLayout::run(GUI::Widget& widget)
@@ -105,7 +99,7 @@ void GridLayout::run(GUI::Widget& widget)
             width_padding += (size_columns - 1) * margins().left();
 
             // Handle having to overflow to the next row
-            if (current_column + size_columns > columns()) {
+            if (auto_layout() && current_column + size_columns > columns()) {
                 current_column = 0;
                 current_row += 1;
             }
@@ -117,7 +111,10 @@ void GridLayout::run(GUI::Widget& widget)
         auto height_padding = 0;
         if (item.height != item_size()) {
             height_padding += (size_rows - 1) * margins().top();
-            current_row += size_rows - 1;
+
+            if (auto_layout()) {
+                current_row += size_rows - 1;
+            }
         }
         
         Gfx::IntRect rect {
@@ -127,6 +124,10 @@ void GridLayout::run(GUI::Widget& widget)
             item.height + height_padding };
 
         item.widget->set_relative_rect(rect);
-        current_column += size_columns;
+        if (auto_layout()) {
+            current_column += size_columns;
+        } else {
+            current_column += 1;
+        }
     }
 }

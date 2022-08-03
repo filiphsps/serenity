@@ -84,13 +84,26 @@ StartWindow::StartWindow()
     for (size_t n = 0; n < apps.size(); n++) {
         auto app = apps.at(n);
 
+        if (n == 2) {
+            container->layout()->add_spacer();
+            container->layout()->add_spacer();
+        } else if (n == 8) {
+            container->layout()->add_spacer();
+        }
+
         auto& tile = container->add<Tile>();
         tile.set_text(app.name);
         tile.set_icon(app.icon.bitmap_for_size(ITEM_SIZE));
         tile.set_fixed_size(ITEM_SIZE, ITEM_SIZE);
 
-        if (app.name == "Assistant" || app.name == "Browser" || app.name == "Calculator") {
+        if (app.name == "2048") {
+            tile.set_fixed_size(ITEM_SIZE * 2, ITEM_SIZE * 2);
+            container->layout()->add_spacer();
+        } else if (app.name == "Calculator") {
+            tile.set_fixed_size(ITEM_SIZE, ITEM_SIZE * 2);
+        } else if (app.name == "Browser") {
             tile.set_fixed_size(ITEM_SIZE * 2, ITEM_SIZE);
+            container->layout()->add_spacer();
         }
     }
 }
