@@ -41,51 +41,92 @@ void GridLayout::run(GUI::Widget& widget)
 
     struct Item {
         GUI::Widget* widget { nullptr };
-        int size { 0 };
+        int width { 0 };
+        int height { 0 };
     };
 
     Vector<Item, 32> items;
-    for (size_t i = 0; i < m_entries.size(); ++i) {
-        auto& entry = m_entries[i];
-        if (!entry.widget)
+    for (auto& entry : m_entries) {
+        if (!entry.widget || !entry.widget->is_visible()) {
+            items.append(Item { nullptr, item_size(), item_size() });
             continue;
-        if (!entry.widget->is_visible())
-            continue;
+        }
 
-        auto min_size = entry.widget->effective_min_size().primary_size_for_orientation(Gfx::Orientation::Vertical);
-        items.append(Item { entry.widget.ptr(), MUST(min_size.shrink_value()) });
+        auto preferred_width = clamp(
+            entry.widget->effective_preferred_size().primary_size_for_orientation(Gfx::Orientation::Horizontal),
+            entry.widget->effective_min_size().primary_size_for_orientation(Gfx::Orientation::Horizontal),
+            entry.widget->max_size().primary_size_for_orientation(Gfx::Orientation::Horizontal)
+        );
+        auto preferred_height = clamp(
+            entry.widget->effective_preferred_size().primary_size_for_orientation(Gfx::Orientation::Vertical),
+            entry.widget->effective_min_size().primary_size_for_orientation(Gfx::Orientation::Vertical),
+            entry.widget->max_size().primary_size_for_orientation(Gfx::Orientation::Vertical)
+        );
+
+        int width = item_size();
+        int height = item_size();
+        if (preferred_width.is_int()) {
+            width = preferred_width.as_int();
+        }
+        if (preferred_height.is_int()) {
+            height = preferred_height.as_int();
+        }
+
+        items.append(
+            Item {
+                entry.widget.ptr(),
+                width,
+                height });
     }
 
     if (items.is_empty())
         return;
 
     Gfx::IntRect content_rect = widget.content_rect();
-    int current_y = margins().top() + content_rect.y();
-    int rows = items.size() / columns();
-    int id = 0;
+    int current_row = 0;
+    int current_column = 0;
 
-    for (int r = 0; r < rows; r++) {
-        int current_x = margins().left() + content_rect.x();
-
-        for (int c = 0; c < columns(); c++) {
-            auto& item = items[id];
-            if (!item.widget) {
-                continue;
-                id += 1;
-            }
-
-            Gfx::IntRect rect { current_x, current_y, 0, 0 };
-            rect.set_primary_size_for_orientation(Gfx::Orientation::Vertical, item.size);
-            rect.set_secondary_size_for_orientation(Gfx::Orientation::Vertical, item.size);
-
-            item.widget->set_relative_rect(rect);
-
-            if (c == columns() - 1) {
-                current_y += rect.height() + spacing();
-            }
-
-            current_x += margins().left() + item.size;
-            id += 1;
+    for (auto& item : items) {
+        if (current_column + 1 > columns()) {
+            current_column = 0;
+            current_row += 1;
         }
+
+        if (!item.widget) {
+            current_column += 1;
+            continue;
+        }
+
+        auto size_columns = item.width / item_size();
+        auto size_rows = item.height / item_size();
+
+        auto width_padding = 0;
+        if (item.width != item_size()) {
+            width_padding += (size_columns - 1) * margins().left();
+
+            // Handle having to overflow to the next row
+            if (current_column + size_columns > columns()) {
+                current_column = 0;
+                current_row += 1;
+            }
+        }
+
+        auto x = (content_rect.x() + margins().left() + (item_size() + margins().left()) * current_column);
+        auto y = (content_rect.y() + margins().top() + (item_size() + margins().top()) * current_row);
+
+        auto height_padding = 0;
+        if (item.height != item_size()) {
+            height_padding += (size_rows - 1) * margins().top();
+            current_row += size_rows - 1;
+        }
+        
+        Gfx::IntRect rect {
+            x,
+            y,
+            item.width + width_padding,
+            item.height + height_padding };
+
+        item.widget->set_relative_rect(rect);
+        current_column += size_columns;
     }
 }

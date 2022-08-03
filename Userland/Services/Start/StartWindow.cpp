@@ -88,6 +88,10 @@ StartWindow::StartWindow()
         tile.set_text(app.name);
         tile.set_icon(app.icon.bitmap_for_size(ITEM_SIZE));
         tile.set_fixed_size(ITEM_SIZE, ITEM_SIZE);
+
+        if (app.name == "Assistant" || app.name == "Browser" || app.name == "Calculator") {
+            tile.set_fixed_size(ITEM_SIZE * 2, ITEM_SIZE);
+        }
     }
 }
 
