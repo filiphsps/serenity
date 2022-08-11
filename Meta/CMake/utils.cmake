@@ -126,6 +126,17 @@ function(serenity_testjs_test test_src sub_dir)
         LIBS ${SERENITY_TEST_LIBS})
 endfunction()
 
+function(serenity_stylepainter target_name)
+    serenity_install_headers(${target_name})
+    serenity_install_sources()
+    add_library(${target_name} SHARED ${SOURCES} ${GENERATED_SOURCES})
+    set_target_properties(${test_name} PROPERTIES EXCLUDE_FROM_ALL TRUE)
+    set_target_properties(${target_name} PROPERTIES VERSION "serenity")
+    install(TARGETS ${target_name} DESTINATION usr/StylePainters/ OPTIONAL)
+    set_target_properties(${target_name} PROPERTIES OUTPUT_NAME ${target_name})
+    serenity_generated_sources(${target_name})
+endfunction()
+
 function(serenity_app target_name)
     cmake_parse_arguments(PARSE_ARGV 1 SERENITY_APP "" "ICON" "")
 
