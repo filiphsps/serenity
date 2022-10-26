@@ -22,8 +22,8 @@ class Clipboard {
 public:
     class ClipboardClient {
     public:
-        ClipboardClient();
-        virtual ~ClipboardClient();
+        ClipboardClient() { }
+        virtual ~ClipboardClient() { }
 
         virtual void clipboard_content_did_change(String const& mime_type) = 0;
     };

@@ -147,6 +147,7 @@ set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} ${LINKER_FLAGS}")
 
 configure_file(../../AK/Debug.h.in AK/Debug.h @ONLY)
 
+include_directories(./Libraries/)
 include_directories(../../)
 include_directories(../../Userland/)
 include_directories(../../Userland/Libraries/)
@@ -407,18 +408,41 @@ if (BUILD_LAGOM)
     endforeach()
 
     # GUI
-    set(LIBGUI_SOURCES
-        GML/Lexer.cpp
-        GML/Parser.cpp
-        GML/SyntaxHighlighter.cpp
-        Icon.cpp
-        Model.cpp
-        ModelIndex.cpp
+    set(LIBGUI_GML_SOURCES
+        Lexer.cpp
+        Parser.cpp
+        SyntaxHighlighter.cpp
     )
-    list(TRANSFORM LIBGUI_SOURCES PREPEND "${SERENITY_PROJECT_ROOT}/Userland/Libraries/LibGUI/")
+    list(TRANSFORM LIBGUI_GML_SOURCES PREPEND "${SERENITY_PROJECT_ROOT}/Userland/Libraries/LibGUI/GML/")
+
+    file(GLOB LIBGUI_LAGOM_SOURCES CONFIGURE_DEPENDS "./Libraries/LibGUI/*.cpp")
+    file(GLOB LIBGUI_SOURCES CONFIGURE_DEPENDS "../../Userland/Libraries/LibGUI/*.cpp")
+
+    # Re-implemented in `Libraries/LibGUI`
+    list(FILTER LIBGUI_SOURCES EXCLUDE REGEX "../../Userland/Libraries/LibGUI/Clipboard.*")
+    list(FILTER LIBGUI_SOURCES EXCLUDE REGEX "../../Userland/Libraries/LibGUI/Desktop.*")
+    list(FILTER LIBGUI_SOURCES EXCLUDE REGEX "../../Userland/Libraries/LibGUI/EmojiInputDialog.*")
+    list(FILTER LIBGUI_SOURCES EXCLUDE REGEX "../../Userland/Libraries/LibGUI/ConnectionToWindowManagerServer.*")
+    list(FILTER LIBGUI_SOURCES EXCLUDE REGEX "../../Userland/Libraries/LibGUI/ConnectionToWindowServer.*")
+
+    # FIXME: Let's exclude a bunch of things to get something building :^)
+    list(FILTER LIBGUI_SOURCES EXCLUDE REGEX "../../Userland/Libraries/LibGUI/RunningProcessModel.*")
+    list(FILTER LIBGUI_SOURCES EXCLUDE REGEX "../../Userland/Libraries/LibGUI/Calendar.*")
+    list(FILTER LIBGUI_SOURCES EXCLUDE REGEX "../../Userland/Libraries/LibGUI/ColorInput.*")
+    list(FILTER LIBGUI_SOURCES EXCLUDE REGEX "../../Userland/Libraries/LibGUI/DisplayLink.*")
+    list(FILTER LIBGUI_SOURCES EXCLUDE REGEX "../../Userland/Libraries/LibGUI/Notification.*")
+    list(FILTER LIBGUI_SOURCES EXCLUDE REGEX "../../Userland/Libraries/LibGUI/MouseTracker.*")
+    list(FILTER LIBGUI_SOURCES EXCLUDE REGEX "../../Userland/Libraries/LibGUI/FileSystemModel.*")
+    list(FILTER LIBGUI_SOURCES EXCLUDE REGEX "../../Userland/Libraries/LibGUI/PasswordInputDialog.*")
+    list(FILTER LIBGUI_SOURCES EXCLUDE REGEX "../../Userland/Libraries/LibGUI/ScreenLayout.*")
+    list(FILTER LIBGUI_SOURCES EXCLUDE REGEX "../../Userland/Libraries/LibGUI/SettingsWindow.*")
+    list(FILTER LIBGUI_SOURCES EXCLUDE REGEX "../../Userland/Libraries/LibGUI/ProcessChooser.*")
+    list(FILTER LIBGUI_SOURCES EXCLUDE REGEX "../../Userland/Libraries/LibGUI/(.*)Picker(.*).*")
+
+    find_package(SDL2)
     lagom_lib(LibGUI gui
-        SOURCES ${LIBGUI_SOURCES}
-        LIBS LibGfx LibSyntax)
+        SOURCES ${SDL2_INCLUDE_DIRS} ${LIBGUI_LAGOM_SOURCES} ${LIBGUI_GML_SOURCES} ${LIBGUI_SOURCES}
+        LIBS SDL2::SDL2 LibELF LibGfx LibSyntax LibRegex)
 
     # FIXME: Why doesn't RPATH of the tests handle this properly?
     set_target_properties(LibSoftGPU PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
@@ -437,6 +461,9 @@ if (BUILD_LAGOM)
         # Lagom Examples
         add_executable(TestApp TestApp.cpp)
         target_link_libraries(TestApp LibCore)
+
+        add_executable(TestGUI TestGUI.cpp)
+        target_link_libraries(TestGUI LibCore LibMain LibGUI)
 
         add_executable(TestJson TestJson.cpp)
         target_link_libraries(TestJson LibCore)

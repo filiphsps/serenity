@@ -5,6 +5,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <AK/Debug.h>
 #include <AK/Badge.h>
 #include <LibCore/EventLoop.h>
 #include <LibCore/MimeData.h>
