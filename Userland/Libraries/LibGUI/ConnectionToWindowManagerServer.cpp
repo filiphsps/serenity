@@ -87,4 +87,10 @@ void ConnectionToWindowManagerServer::keymap_changed(i32 wm_id, DeprecatedString
         Core::EventLoop::current().post_event(*window, make<WMKeymapChangedEvent>(wm_id, keymap));
 }
 
+void ConnectionToWindowManagerServer::menu_area_size_changed(i32 wm_id, Gfx::IntSize size)
+{
+    if (auto* window = Window::from_window_id(wm_id))
+        Core::EventLoop::current().post_event(*window, make<WMMenuAreaSizeChangedEvent>(size));
+}
+
 }

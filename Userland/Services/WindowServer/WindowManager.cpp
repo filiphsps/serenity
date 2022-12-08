@@ -589,6 +589,17 @@ void WindowManager::tell_wms_current_window_stack_changed()
     });
 }
 
+void WindowManager::tell_wms_menu_area_size_changed(Gfx::IntSize size)
+{
+    for_each_window_manager([&](WMConnectionFromClient& conn) {
+        if (conn.window_id() < 0)
+            return IterationDecision::Continue;
+
+        conn.async_menu_area_size_changed(conn.window_id(), size);
+        return IterationDecision::Continue;
+    });
+}
+
 static bool window_type_has_title(WindowType type)
 {
     return type == WindowType::Normal;
@@ -1423,8 +1434,9 @@ Gfx::IntRect WindowManager::desktop_rect(Screen& screen) const
     if (active_fullscreen_window())
         return Screen::main().rect(); // TODO: we should support fullscreen windows on any screen
     auto screen_rect = screen.rect();
-    if (screen.is_main_screen())
-        screen_rect.set_height(screen.height() - TaskbarWindow::taskbar_height());
+    if (screen.is_main_screen()) {
+        screen_rect.set_height(screen.height() - TaskbarWindow::taskbar_height() - 22);
+    }
     return screen_rect;
 }
 
@@ -1955,7 +1967,7 @@ Gfx::IntRect WindowManager::tiled_window_rect(Window const& window, WindowTileTy
     Gfx::IntRect rect = screen.rect();
 
     if (screen.is_main_screen())
-        rect.set_height(rect.height() - TaskbarWindow::taskbar_height());
+        rect.set_height(rect.height() - TaskbarWindow::taskbar_height() - 22);
 
     if (tile_type == WindowTileType::Maximized) {
         auto border_thickness = palette().window_border_thickness();

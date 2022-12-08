@@ -177,6 +177,7 @@ public:
     void tell_wms_super_d_key_pressed();
     void tell_wms_super_digit_key_pressed(u8);
     void tell_wms_current_window_stack_changed();
+    void tell_wms_menu_area_size_changed(Gfx::IntSize);
 
     void check_hide_geometry_overlay(Window&);
 
@@ -336,6 +337,9 @@ public:
 
     u8 last_processed_buttons() { return m_last_processed_buttons; }
 
+    void set_menu_area_position(Gfx::IntPoint position) { m_menu_area_position = position; }
+    Gfx::IntPoint menu_area_position() { return m_menu_area_position; }
+
 private:
     explicit WindowManager(Gfx::PaletteImpl const&);
 
@@ -481,6 +485,8 @@ private:
     Vector<WeakPtr<Window>, 4> m_carry_window_to_new_stack;
 
     SystemEffects m_system_effects;
+
+    Gfx::IntPoint m_menu_area_position;
 };
 
 template<typename Callback>

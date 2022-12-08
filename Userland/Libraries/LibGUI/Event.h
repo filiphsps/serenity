@@ -72,6 +72,7 @@ public:
         WM_SuperDigitKeyPressed,
         WM_WorkspaceChanged,
         WM_KeymapChanged,
+        WM_MenuAreaSizeChanged,
         __End_WM_Events,
     };
 
@@ -261,6 +262,20 @@ public:
 
 private:
     const DeprecatedString m_keymap;
+};
+
+class WMMenuAreaSizeChangedEvent : public WMEvent {
+public:
+    explicit WMMenuAreaSizeChangedEvent(Gfx::IntSize size)
+        : WMEvent(Event::Type::WM_MenuAreaSizeChanged, 0, 0)
+        , m_size(size)
+    {
+    }
+
+    Gfx::IntSize size() const { return m_size; }
+
+private:
+    Gfx::IntSize m_size;
 };
 
 class MultiPaintEvent final : public Event {

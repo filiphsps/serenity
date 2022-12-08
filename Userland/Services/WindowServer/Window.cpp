@@ -93,6 +93,15 @@ Window::Window(Core::Object& parent, WindowType type)
     frame().window_was_constructed({});
 }
 
+Window::Window(WindowType type)
+    : m_type(type)
+    , m_icon(default_window_icon())
+    , m_frame(*this)
+{
+    WindowManager::the().add_window(*this);
+    frame().window_was_constructed({});
+}
+
 Window::Window(ConnectionFromClient& client, WindowType window_type, WindowMode window_mode, int window_id, bool minimizable, bool closeable, bool frameless, bool resizable, bool fullscreen, Window* parent_window)
     : Core::Object(&client)
     , m_client(&client)

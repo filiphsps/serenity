@@ -187,4 +187,15 @@ void WMConnectionFromClient::set_keymap(DeprecatedString const& keymap)
     WindowManager::the().keymap_switcher()->set_keymap(keymap);
 }
 
+void WMConnectionFromClient::set_menu_area_position(Gfx::IntPoint position)
+{
+    if (m_window_id < 0) {
+        did_misbehave("SetMenuAreaPosition: WM didn't assign window as manager yet");
+        // FIXME: return ok boolean?
+        return;
+    }
+
+    WindowManager::the().set_menu_area_position(position);
+}
+
 }

@@ -257,7 +257,8 @@ Gfx::IntRect WindowFrame::menubar_rect() const
 {
     if (!m_window.menubar().has_menus() || !m_window.should_show_menubar())
         return {};
-    return Gfx::WindowTheme::current().menubar_rect(to_theme_window_type(m_window.type()), to_theme_window_mode(m_window.mode()), m_window.rect(), WindowManager::the().palette(), menu_row_count());
+    // auto rect = Gfx::WindowTheme::current().menubar_rect(to_theme_window_type(m_window.type()), to_theme_window_mode(m_window.mode()), m_window.rect(), WindowManager::the().palette(), menu_row_count());
+    return { 0, 0, Screen::main().width(), 22 };
 }
 
 Gfx::IntRect WindowFrame::titlebar_rect() const
@@ -304,46 +305,53 @@ void WindowFrame::paint_menubar(Gfx::Painter& painter)
     auto palette = wm.palette();
     auto menubar_rect = this->menubar_rect();
 
+    auto clip = painter.clip_rect();
+    painter.clear_clip_rect();
+
     painter.fill_rect(menubar_rect, palette.window());
 
     Gfx::PainterStateSaver saver(painter);
     painter.add_clip_rect(menubar_rect);
-    painter.translate(menubar_rect.location());
+    painter.translate(WindowManager::the().menu_area_position());
+    // painter.translate(menubar_rect.location());
 
-    m_window.menubar().for_each_menu([&](Menu& menu) {
-        bool paint_as_flashed = ((&menu) == m_window.menubar().flashed_menu());
-        if (paint_as_flashed) {
-            auto flashed_rect = menu.rect_in_window_menubar();
-            flashed_rect.shrink(2, 2);
-            painter.fill_rect(flashed_rect, palette.selection());
-        }
+    if (m_window.menubar().has_menus() && m_window.should_show_menubar()) {
+        m_window.menubar().for_each_menu([&](Menu& menu) {
+            bool paint_as_flashed = ((&menu) == m_window.menubar().flashed_menu());
+            if (paint_as_flashed) {
+                auto flashed_rect = menu.rect_in_window_menubar();
+                flashed_rect.shrink(2, 2);
+                painter.fill_rect(flashed_rect, palette.selection());
+            }
 
-        auto text_rect = menu.rect_in_window_menubar();
-        Color text_color = (paint_as_flashed ? palette.selection_text() : palette.window_text());
-        auto is_open = menu.is_open();
-        if (is_open)
-            text_rect.translate_by(1, 1);
-        bool paint_as_pressed = is_open;
-        bool paint_as_hovered = !paint_as_pressed && &menu == MenuManager::the().hovered_menu();
-        if (paint_as_pressed || paint_as_hovered) {
-            Gfx::StylePainter::paint_button(painter, menu.rect_in_window_menubar(), palette, Gfx::ButtonStyle::Coolbar, paint_as_pressed, paint_as_hovered);
-        }
-        painter.draw_ui_text(text_rect, menu.name(), font, Gfx::TextAlignment::Center, text_color);
-        return IterationDecision::Continue;
-    });
+            auto text_rect = menu.rect_in_window_menubar();
+            Color text_color = (paint_as_flashed ? palette.selection_text() : palette.window_text());
+            auto is_open = menu.is_open();
+            if (is_open)
+                text_rect.translate_by(1, 1);
+            bool paint_as_pressed = is_open;
+            bool paint_as_hovered = !paint_as_pressed && &menu == MenuManager::the().hovered_menu();
+            if (paint_as_pressed || paint_as_hovered) {
+                Gfx::StylePainter::paint_button(painter, menu.rect_in_window_menubar(), palette, Gfx::ButtonStyle::Coolbar, paint_as_pressed, paint_as_hovered);
+            }
+            painter.draw_ui_text(text_rect, menu.name(), font, Gfx::TextAlignment::Center, text_color);
+            return IterationDecision::Continue;
+        });
+    }
+
+    painter.add_clip_rect(clip);
 }
 
 void WindowFrame::paint_normal_frame(Gfx::Painter& painter)
 {
     auto palette = WindowManager::the().palette();
     Gfx::WindowTheme::current().paint_normal_frame(painter, window_state_for_theme(), to_theme_window_mode(m_window.mode()), m_window.rect(), m_window.computed_title(), m_window.icon(), palette, leftmost_titlebar_button_rect(), menu_row_count(), m_window.is_modified());
-
-    if (m_window.menubar().has_menus() && m_window.should_show_menubar())
-        paint_menubar(painter);
 }
 
 void WindowFrame::paint(Screen& screen, Gfx::Painter& painter, Gfx::IntRect const& rect)
 {
+    paint_menubar(painter);
+
     if (auto* cached = render_to_cache(screen))
         cached->paint(*this, painter, rect);
 }
@@ -671,6 +679,7 @@ void WindowFrame::window_rect_changed(Gfx::IntRect const& old_rect, Gfx::IntRect
 
     set_dirty(true);
     WindowManager::the().notify_rect_changed(m_window, old_rect, new_rect);
+    WindowManager::the().tell_wms_menu_area_size_changed({ Screen::main().width(), 18 });
 }
 
 void WindowFrame::layout_buttons()
@@ -837,6 +846,7 @@ void WindowFrame::handle_mouse_event(MouseEvent const& event)
         return;
     }
 
+    dbgln("{} {}", menubar_rect(), event.position());
     if (menubar_rect().contains(event.position())) {
         handle_menubar_mouse_event(event);
         return;

@@ -32,6 +32,7 @@ public:
     virtual void set_manager_window(i32) override;
     virtual void set_workspace(u32, u32) override;
     virtual void set_keymap(DeprecatedString const&) override;
+    virtual void set_menu_area_position(Gfx::IntPoint) override;
 
     unsigned event_mask() const { return m_event_mask; }
     int window_id() const { return m_window_id; }
