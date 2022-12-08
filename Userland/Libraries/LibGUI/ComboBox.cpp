@@ -248,7 +248,7 @@ void ComboBox::open()
     Gfx::IntSize size { max(width(), m_list_view->content_width() + frame), max_height + frame };
     Gfx::IntRect rect { screen_relative_rect().bottom_left(), size };
 
-    auto desktop = Desktop::the().rect().shrunken(0, 0, Desktop::the().taskbar_height(), 0);
+    auto desktop = Desktop::the().rect().shrunken(0, 0, Desktop::the().taskbar_size(), 0);
     auto min_height = 5 * m_list_view->item_height() + frame;
     auto go_upwards_instead = rect.bottom() >= desktop.height() && rect.intersected(desktop).height() < min_height;
     if (go_upwards_instead) {

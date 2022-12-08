@@ -29,7 +29,7 @@ Dialog::ExecResult Dialog::exec()
     auto window_rect = rect();
 
     auto top_align = [](Gfx::Rect<int>& rect) { rect.set_y(32); };
-    auto bottom_align = [this, desktop_rect](Gfx::Rect<int>& rect) { rect.set_y(desktop_rect.height() - Desktop::the().taskbar_height() - height() - 12); };
+    auto bottom_align = [this, desktop_rect](Gfx::Rect<int>& rect) { rect.set_y(desktop_rect.height() - Desktop::the().taskbar_size() - height() - 12); };
 
     auto left_align = [](Gfx::Rect<int>& rect) { rect.set_x(12); };
     auto right_align = [this, desktop_rect](Gfx::Rect<int>& rect) { rect.set_x(desktop_rect.width() - width() - 12); };
@@ -43,7 +43,7 @@ Dialog::ExecResult Dialog::exec()
                 // If the dialog is larger than the desktop's rect just center it.
                 window_rect.center_within(parent_window.rect());
                 if (window_rect.size().width() < desktop_rect.size().width() && window_rect.size().height() < desktop_rect.size().height()) {
-                    auto taskbar_top_y = desktop_rect.bottom() - Desktop::the().taskbar_height();
+                    auto taskbar_top_y = desktop_rect.bottom() - Desktop::the().taskbar_size();
                     auto palette = GUI::Application::the()->palette();
                     auto border_thickness = palette.window_border_thickness();
                     auto top_border_title_thickness = border_thickness + palette.window_title_height();

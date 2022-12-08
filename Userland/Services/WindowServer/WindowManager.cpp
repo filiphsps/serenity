@@ -1424,7 +1424,7 @@ Gfx::IntRect WindowManager::desktop_rect(Screen& screen) const
         return Screen::main().rect(); // TODO: we should support fullscreen windows on any screen
     auto screen_rect = screen.rect();
     if (screen.is_main_screen())
-        screen_rect.set_height(screen.height() - TaskbarWindow::taskbar_height());
+        screen_rect.set_height(screen.height() - TaskbarWindow::taskbar_size());
     return screen_rect;
 }
 
@@ -1955,7 +1955,7 @@ Gfx::IntRect WindowManager::tiled_window_rect(Window const& window, WindowTileTy
     Gfx::IntRect rect = screen.rect();
 
     if (screen.is_main_screen())
-        rect.set_height(rect.height() - TaskbarWindow::taskbar_height());
+        rect.set_height(rect.height() - TaskbarWindow::taskbar_size());
 
     if (tile_type == WindowTileType::Maximized) {
         auto border_thickness = palette().window_border_thickness();
@@ -2175,7 +2175,7 @@ Gfx::IntPoint WindowManager::get_recommended_window_position(Gfx::IntPoint desir
         auto& screen = Screen::closest_to_location(desired);
         point = overlap_window->position() + shift;
         point = { point.x() % screen.width(),
-            (point.y() >= (screen.height() - (screen.is_main_screen() ? TaskbarWindow::taskbar_height() : 0)))
+            (point.y() >= (screen.height() - (screen.is_main_screen() ? TaskbarWindow::taskbar_size() : 0)))
                 ? Gfx::WindowTheme::current().titlebar_height(Gfx::WindowTheme::WindowType::Normal, Gfx::WindowTheme::WindowMode::Other, palette())
                 : point.y() };
     } else {

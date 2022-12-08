@@ -23,13 +23,34 @@ class TaskbarWindow final : public GUI::Window
 public:
     virtual ~TaskbarWindow() override = default;
 
-    static int taskbar_height() { return 27; }
+    static int taskbar_size() { return 27; }
     static int taskbar_icon_size() { return 16; }
 
     virtual void config_string_did_change(DeprecatedString const&, DeprecatedString const&, DeprecatedString const&, DeprecatedString const&) override;
     virtual void add_system_menu(NonnullRefPtr<GUI::Menu> system_menu);
 
 private:
+    enum TaskbarPosition {
+        Top,
+        Bottom,
+        Left,
+        Right,
+    };
+
+    TaskbarPosition string_to_taskbar_position(DeprecatedString const& position)
+    {
+        if (position == "Top")
+            return TaskbarPosition::Top;
+        else if (position == "Bottom")
+            return TaskbarPosition::Bottom;
+        else if (position == "Left")
+            return TaskbarPosition::Left;
+        else if (position == "Right")
+            return TaskbarPosition::Right;
+
+        VERIFY_NOT_REACHED();
+    }
+
     explicit TaskbarWindow();
     static void show_desktop_button_clicked(unsigned);
     static void toggle_show_desktop();
@@ -45,6 +66,7 @@ private:
     virtual void screen_rects_change_event(GUI::ScreenRectsChangeEvent&) override;
 
     void update_applet_area();
+    void update_position();
 
     bool is_window_on_current_workspace(::Window&) const;
     void workspace_change_event(unsigned, unsigned);
@@ -66,4 +88,6 @@ private:
 
     unsigned m_current_workspace_row { 0 };
     unsigned m_current_workspace_column { 0 };
+
+    TaskbarPosition m_position { TaskbarPosition::Bottom };
 };

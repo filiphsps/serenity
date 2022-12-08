@@ -20,6 +20,7 @@ public:
     virtual ~BoxLayout() override = default;
 
     Gfx::Orientation orientation() const { return m_orientation; }
+    void set_orientation(Gfx::Orientation orientation) { m_orientation = orientation; }
 
     virtual void run(Widget&) override;
     virtual UISize preferred_size() const override;

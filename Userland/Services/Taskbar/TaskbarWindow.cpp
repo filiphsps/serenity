@@ -10,6 +10,7 @@
 #include "QuickLaunchWidget.h"
 #include "TaskbarButton.h"
 #include <AK/Debug.h>
+#include <LibConfig/Client.h>
 #include <LibCore/StandardPaths.h>
 #include <LibGUI/BoxLayout.h>
 #include <LibGUI/Button.h>
@@ -22,6 +23,7 @@
 #include <LibGUI/Painter.h>
 #include <LibGUI/Window.h>
 #include <LibGfx/Font/FontDatabase.h>
+#include <LibGfx/Orientation.h>
 #include <LibGfx/Palette.h>
 #include <serenity.h>
 #include <stdio.h>
@@ -57,6 +59,7 @@ TaskbarWindow::TaskbarWindow()
     set_window_type(GUI::WindowType::Taskbar);
     set_title("Taskbar");
 
+    m_position = string_to_taskbar_position(Config::read_string("Taskbar"sv, "General"sv, "Position"sv, "Bottom"sv));
     on_screen_rects_change(GUI::Desktop::the().rects(), GUI::Desktop::the().main_screen_index());
 
     auto& main_widget = set_main_widget<TaskbarWidget>();
@@ -89,6 +92,8 @@ TaskbarWindow::TaskbarWindow()
 
     auto af_path = DeprecatedString::formatted("{}/{}", Desktop::AppFile::APP_FILES_DIRECTORY, "Assistant.af");
     m_assistant_app_file = Desktop::AppFile::open(af_path);
+
+    update_position();
 }
 
 void TaskbarWindow::add_system_menu(NonnullRefPtr<GUI::Menu> system_menu)
@@ -108,8 +113,15 @@ void TaskbarWindow::add_system_menu(NonnullRefPtr<GUI::Menu> system_menu)
 
 void TaskbarWindow::config_string_did_change(DeprecatedString const& domain, DeprecatedString const& group, DeprecatedString const& key, DeprecatedString const& value)
 {
-    if (domain == "Taskbar" && group == "Clock" && key == "TimeFormat") {
-        m_clock_widget->update_format(value);
+    if (domain == "Taskbar") {
+        if (group == "Clock" && key == "TimeFormat") {
+            m_clock_widget->update_format(value);
+        } else if (group == "General" && key == "Position") {
+            m_position = string_to_taskbar_position(value);
+            update_position();
+            on_screen_rects_change(GUI::Desktop::the().rects(), GUI::Desktop::the().main_screen_index());
+        }
+
         update_applet_area();
     }
 }
@@ -127,7 +139,24 @@ void TaskbarWindow::toggle_show_desktop()
 void TaskbarWindow::on_screen_rects_change(Vector<Gfx::IntRect, 4> const& rects, size_t main_screen_index)
 {
     auto const& rect = rects[main_screen_index];
-    Gfx::IntRect new_rect { rect.x(), rect.bottom() - taskbar_height() + 1, rect.width(), taskbar_height() };
+    Gfx::IntRect new_rect;
+
+    switch (m_position) {
+    case TaskbarPosition::Top:
+        new_rect = { rect.x(), 0, rect.width(), taskbar_size() };
+        break;
+    case TaskbarPosition::Bottom:
+        new_rect = { rect.x(), rect.bottom() - taskbar_size() + 1, rect.width(), taskbar_size() };
+        break;
+    case TaskbarPosition::Left:
+        new_rect = { 0, rect.top(), taskbar_size(), rect.height() };
+        break;
+    case TaskbarPosition::Right:
+        new_rect = { rect.right() - taskbar_size(), rect.top(), taskbar_size(), rect.height() };
+        break;
+    default:
+        VERIFY_NOT_REACHED();
+    }
     set_rect(new_rect);
     update_applet_area();
 }
@@ -143,11 +172,38 @@ void TaskbarWindow::update_applet_area()
     GUI::ConnectionToWindowManagerServer::the().async_set_applet_area_position(new_rect.location());
 }
 
+void TaskbarWindow::update_position()
+{
+    if (m_position == TaskbarPosition::Top || m_position == TaskbarPosition::Bottom) {
+        static_cast<GUI::HorizontalBoxLayout*>(main_widget()->layout())->set_orientation(Gfx::Orientation::Horizontal);
+        static_cast<GUI::HorizontalBoxLayout*>(m_task_button_container->layout())->set_orientation(Gfx::Orientation::Horizontal);
+
+        /*m_task_button_container->for_each_child_of_type<TaskbarButton>([&](auto& child) {
+            child.set_min_size(20, 21);
+            child.set_max_size(140, 21);
+            return IterationDecision::Continue;
+        });*/
+    } else {
+        static_cast<GUI::HorizontalBoxLayout*>(main_widget()->layout())->set_orientation(Gfx::Orientation::Vertical);
+        static_cast<GUI::HorizontalBoxLayout*>(m_task_button_container->layout())->set_orientation(Gfx::Orientation::Vertical);
+
+        /*m_task_button_container->for_each_child_of_type<TaskbarButton>([&](auto& child) {
+            child.set_min_size(taskbar_size() - 3, taskbar_size() - 3);
+            child.set_max_size(taskbar_size() - 3, taskbar_size() - 3);
+            return IterationDecision::Continue;
+        });*/
+    }
+}
+
 NonnullRefPtr<GUI::Button> TaskbarWindow::create_button(WindowIdentifier const& identifier)
 {
     auto& button = m_task_button_container->add<TaskbarButton>(identifier);
     button.set_min_size(20, 21);
     button.set_max_size(140, 21);
+
+    button.set_min_size(taskbar_size() - 3, taskbar_size() - 3);
+    button.set_max_size(taskbar_size() - 3, taskbar_size() - 3);
+
     button.set_text_alignment(Gfx::TextAlignment::CenterLeft);
     button.set_icon(*m_default_icon);
     return button;
