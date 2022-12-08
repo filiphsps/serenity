@@ -21,7 +21,7 @@ HighlightPreviewWidget::HighlightPreviewWidget(Gfx::Palette const& palette)
 
 ErrorOr<void> HighlightPreviewWidget::reload_cursor()
 {
-    auto cursor_theme = GUI::ConnectionToWindowServer::the().get_cursor_theme();
+    auto cursor_theme = GUI::ConnectionToWindowServer::the().cursor_theme();
     auto theme_path = DeprecatedString::formatted("/res/cursor-themes/{}/{}", cursor_theme, "Config.ini");
     auto cursor_theme_config = TRY(Core::ConfigFile::open(theme_path));
     auto load_bitmap = [](StringView path, StringView default_path) {

@@ -325,7 +325,7 @@ void ConnectionFromClient::set_wallpaper_mode(DeprecatedString const& mode)
     Compositor::the().set_wallpaper_mode(mode);
 }
 
-Messages::WindowServer::GetWallpaperResponse ConnectionFromClient::get_wallpaper()
+Messages::WindowServer::WallpaperResponse ConnectionFromClient::wallpaper()
 {
     return Compositor::the().wallpaper_bitmap()->to_shareable_bitmap();
 }
@@ -337,9 +337,9 @@ Messages::WindowServer::SetScreenLayoutResponse ConnectionFromClient::set_screen
     return { success, move(error_msg) };
 }
 
-Messages::WindowServer::GetScreenLayoutResponse ConnectionFromClient::get_screen_layout()
+Messages::WindowServer::ScreenLayoutResponse ConnectionFromClient::screen_layout()
 {
-    return { WindowManager::the().get_screen_layout() };
+    return { WindowManager::the().screen_layout() };
 }
 
 Messages::WindowServer::SaveScreenLayoutResponse ConnectionFromClient::save_screen_layout()
@@ -357,7 +357,7 @@ Messages::WindowServer::ApplyWorkspaceSettingsResponse ConnectionFromClient::app
     return { WindowManager::the().apply_workspace_settings(rows, columns, save) };
 }
 
-Messages::WindowServer::GetWorkspaceSettingsResponse ConnectionFromClient::get_workspace_settings()
+Messages::WindowServer::WorkspaceSettingsResponse ConnectionFromClient::workspace_settings()
 {
     auto& wm = WindowManager::the();
     return { (unsigned)wm.window_stack_rows(), (unsigned)wm.window_stack_columns(), WindowManager::max_window_stack_rows, WindowManager::max_window_stack_columns };
@@ -384,7 +384,7 @@ void ConnectionFromClient::set_window_title(i32 window_id, DeprecatedString cons
     it->value->set_title(title);
 }
 
-Messages::WindowServer::GetWindowTitleResponse ConnectionFromClient::get_window_title(i32 window_id)
+Messages::WindowServer::WindowTitleResponse ConnectionFromClient::window_title(i32 window_id)
 {
     auto it = m_windows.find(window_id);
     if (it == m_windows.end()) {
@@ -480,7 +480,7 @@ Messages::WindowServer::SetWindowRectResponse ConnectionFromClient::set_window_r
     return window.rect();
 }
 
-Messages::WindowServer::GetWindowRectResponse ConnectionFromClient::get_window_rect(i32 window_id)
+Messages::WindowServer::WindowRectResponse ConnectionFromClient::window_rect(i32 window_id)
 {
     auto it = m_windows.find(window_id);
     if (it == m_windows.end()) {
@@ -552,7 +552,7 @@ void ConnectionFromClient::set_window_minimum_size(i32 window_id, Gfx::IntSize s
     }
 }
 
-Messages::WindowServer::GetWindowMinimumSizeResponse ConnectionFromClient::get_window_minimum_size(i32 window_id)
+Messages::WindowServer::WindowMinimumSizeResponse ConnectionFromClient::window_minimum_size(i32 window_id)
 {
     auto it = m_windows.find(window_id);
     if (it == m_windows.end()) {
@@ -562,7 +562,7 @@ Messages::WindowServer::GetWindowMinimumSizeResponse ConnectionFromClient::get_w
     return it->value->minimum_size();
 }
 
-Messages::WindowServer::GetAppletRectOnScreenResponse ConnectionFromClient::get_applet_rect_on_screen(i32 window_id)
+Messages::WindowServer::AppletRectOnScreenResponse ConnectionFromClient::applet_rect_on_screen(i32 window_id)
 {
     auto it = m_windows.find(window_id);
     if (it == m_windows.end()) {
@@ -869,7 +869,7 @@ Messages::WindowServer::SetSystemThemeResponse ConnectionFromClient::set_system_
     return success;
 }
 
-Messages::WindowServer::GetSystemThemeResponse ConnectionFromClient::get_system_theme()
+Messages::WindowServer::SystemThemeResponse ConnectionFromClient::system_theme()
 {
     auto wm_config = Core::ConfigFile::open("/etc/WindowServer.ini").release_value_but_fixme_should_propagate_errors();
     auto name = wm_config->read_entry("Theme", "Name");
@@ -882,7 +882,7 @@ Messages::WindowServer::SetSystemThemeOverrideResponse ConnectionFromClient::set
     return success;
 }
 
-Messages::WindowServer::GetSystemThemeOverrideResponse ConnectionFromClient::get_system_theme_override()
+Messages::WindowServer::SystemThemeOverrideResponse ConnectionFromClient::system_theme_override()
 {
     return WindowManager::the().get_theme_override();
 }
@@ -907,7 +907,7 @@ void ConnectionFromClient::set_cursor_highlight_radius(int radius)
     WindowManager::the().set_cursor_highlight_radius(radius);
 }
 
-Messages::WindowServer::GetCursorHighlightRadiusResponse ConnectionFromClient::get_cursor_highlight_radius()
+Messages::WindowServer::CursorHighlightRadiusResponse ConnectionFromClient::cursor_highlight_radius()
 {
     return WindowManager::the().cursor_highlight_radius();
 }
@@ -917,12 +917,12 @@ void ConnectionFromClient::set_cursor_highlight_color(Gfx::Color color)
     WindowManager::the().set_cursor_highlight_color(color);
 }
 
-Messages::WindowServer::GetCursorHighlightColorResponse ConnectionFromClient::get_cursor_highlight_color()
+Messages::WindowServer::CursorHighlightColorResponse ConnectionFromClient::cursor_highlight_color()
 {
     return WindowManager::the().cursor_highlight_color();
 }
 
-Messages::WindowServer::GetCursorThemeResponse ConnectionFromClient::get_cursor_theme()
+Messages::WindowServer::CursorThemeResponse ConnectionFromClient::cursor_theme()
 {
     auto config = Core::ConfigFile::open("/etc/WindowServer.ini").release_value_but_fixme_should_propagate_errors();
     auto name = config->read_entry("Mouse", "CursorTheme");
@@ -1052,7 +1052,7 @@ void ConnectionFromClient::set_global_cursor_position(Gfx::IntPoint position)
     }
 }
 
-Messages::WindowServer::GetGlobalCursorPositionResponse ConnectionFromClient::get_global_cursor_position()
+Messages::WindowServer::GlobalCursorPositionResponse ConnectionFromClient::global_cursor_position()
 {
     return ScreenInput::the().cursor_location();
 }
@@ -1067,7 +1067,7 @@ void ConnectionFromClient::set_mouse_acceleration(float factor)
     WindowManager::the().set_acceleration_factor(dbl_factor);
 }
 
-Messages::WindowServer::GetMouseAccelerationResponse ConnectionFromClient::get_mouse_acceleration()
+Messages::WindowServer::MouseAccelerationResponse ConnectionFromClient::mouse_acceleration()
 {
     return ScreenInput::the().acceleration_factor();
 }
@@ -1081,7 +1081,7 @@ void ConnectionFromClient::set_scroll_step_size(u32 step_size)
     WindowManager::the().set_scroll_step_size(step_size);
 }
 
-Messages::WindowServer::GetScrollStepSizeResponse ConnectionFromClient::get_scroll_step_size()
+Messages::WindowServer::ScrollStepSizeResponse ConnectionFromClient::scroll_step_size()
 {
     return ScreenInput::the().scroll_step_size();
 }
@@ -1095,7 +1095,7 @@ void ConnectionFromClient::set_double_click_speed(i32 speed)
     WindowManager::the().set_double_click_speed(speed);
 }
 
-Messages::WindowServer::GetDoubleClickSpeedResponse ConnectionFromClient::get_double_click_speed()
+Messages::WindowServer::DoubleClickSpeedResponse ConnectionFromClient::double_click_speed()
 {
     return WindowManager::the().double_click_speed();
 }
@@ -1151,7 +1151,7 @@ void ConnectionFromClient::did_become_responsive()
     set_unresponsive(false);
 }
 
-Messages::WindowServer::GetScreenBitmapResponse ConnectionFromClient::get_screen_bitmap(Optional<Gfx::IntRect> const& rect, Optional<u32> const& screen_index)
+Messages::WindowServer::ScreenBitmapResponse ConnectionFromClient::screen_bitmap(Optional<Gfx::IntRect> const& rect, Optional<u32> const& screen_index)
 {
     if (screen_index.has_value()) {
         auto* screen = Screen::find_by_index(screen_index.value());
@@ -1191,7 +1191,7 @@ Messages::WindowServer::GetScreenBitmapResponse ConnectionFromClient::get_screen
     return { Gfx::ShareableBitmap() };
 }
 
-Messages::WindowServer::GetScreenBitmapAroundCursorResponse ConnectionFromClient::get_screen_bitmap_around_cursor(Gfx::IntSize size)
+Messages::WindowServer::ScreenBitmapAroundCursorResponse ConnectionFromClient::screen_bitmap_around_cursor(Gfx::IntSize size)
 {
     // TODO: Mixed scale setups at what scale? Lowest? Highest? Configurable?
     auto cursor_location = ScreenInput::the().cursor_location();
@@ -1260,7 +1260,7 @@ Messages::WindowServer::GetScreenBitmapAroundCursorResponse ConnectionFromClient
     return { {} };
 }
 
-Messages::WindowServer::GetColorUnderCursorResponse ConnectionFromClient::get_color_under_cursor()
+Messages::WindowServer::ColorUnderCursorResponse ConnectionFromClient::color_under_cursor()
 {
     auto screen_scale_factor = ScreenInput::the().cursor_location_screen().scale_factor();
     // FIXME: Add a mechanism to get screen bitmap without cursor, so we don't have to do this
@@ -1286,7 +1286,7 @@ Messages::WindowServer::IsWindowModifiedResponse ConnectionFromClient::is_window
     return window.is_modified();
 }
 
-Messages::WindowServer::GetDesktopDisplayScaleResponse ConnectionFromClient::get_desktop_display_scale(u32 screen_index)
+Messages::WindowServer::DesktopDisplayScaleResponse ConnectionFromClient::desktop_display_scale(u32 screen_index)
 {
     if (auto* screen = Screen::find_by_index(screen_index))
         return screen->scale_factor();
@@ -1337,7 +1337,7 @@ void ConnectionFromClient::set_window_parent_from_client(i32 client_id, i32 pare
     }
 }
 
-Messages::WindowServer::GetWindowRectFromClientResponse ConnectionFromClient::get_window_rect_from_client(i32 client_id, i32 window_id)
+Messages::WindowServer::WindowRectFromClientResponse ConnectionFromClient::window_rect_from_client(i32 client_id, i32 window_id)
 {
     auto* client_connection = from_client_id(client_id);
     if (!client_connection) {

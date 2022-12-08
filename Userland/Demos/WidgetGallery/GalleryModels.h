@@ -60,7 +60,7 @@ public:
     {
         m_cursors.clear();
 
-        Core::DirIterator iterator(DeprecatedString::formatted("/res/cursor-themes/{}", GUI::ConnectionToWindowServer::the().get_cursor_theme()), Core::DirIterator::Flags::SkipDots);
+        Core::DirIterator iterator(DeprecatedString::formatted("/res/cursor-themes/{}", GUI::ConnectionToWindowServer::the().cursor_theme()), Core::DirIterator::Flags::SkipDots);
 
         while (iterator.has_next()) {
             auto path = iterator.next_full_path();

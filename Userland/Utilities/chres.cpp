@@ -27,7 +27,7 @@ ErrorOr<int> serenity_main(Main::Arguments arguments)
     // A Core::EventLoop is all we need, but ConnectionToWindowServer needs a full Application object.
     char* dummy_argv[] = { arguments.argv[0] };
     auto app = TRY(GUI::Application::try_create(1, dummy_argv));
-    auto screen_layout = GUI::ConnectionToWindowServer::the().get_screen_layout();
+    auto screen_layout = GUI::ConnectionToWindowServer::the().screen_layout();
     if (screen < 0 || (size_t)screen >= screen_layout.screens.size()) {
         warnln("invalid screen index: {}", screen);
         return 1;

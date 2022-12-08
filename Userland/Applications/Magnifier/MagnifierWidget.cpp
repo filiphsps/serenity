@@ -53,7 +53,7 @@ void MagnifierWidget::sync()
 
     auto size = frame_inner_rect().size();
     Gfx::IntSize grab_size { size.width() / m_scale_factor, size.height() / m_scale_factor };
-    m_grabbed_bitmap = GUI::ConnectionToWindowServer::the().get_screen_bitmap_around_cursor(grab_size).bitmap();
+    m_grabbed_bitmap = GUI::ConnectionToWindowServer::the().screen_bitmap_around_cursor(grab_size).bitmap();
     m_grabbed_bitmaps.enqueue(m_grabbed_bitmap);
     update();
 }

@@ -65,7 +65,7 @@ endpoint WindowServer
     destroy_window(i32 window_id) => (Vector<i32> destroyed_window_ids)
 
     set_window_title(i32 window_id, [UTF8] DeprecatedString title) =|
-    get_window_title(i32 window_id) => ([UTF8] DeprecatedString title)
+    window_title(i32 window_id) => ([UTF8] DeprecatedString title)
 
     set_window_progress(i32 window_id, Optional<i32> progress) =|
 
@@ -73,12 +73,12 @@ endpoint WindowServer
     is_window_modified(i32 window_id) => (bool modified)
 
     set_window_rect(i32 window_id, Gfx::IntRect rect) => (Gfx::IntRect rect)
-    get_window_rect(i32 window_id) => (Gfx::IntRect rect)
+    window_rect(i32 window_id) => (Gfx::IntRect rect)
 
     set_window_minimum_size(i32 window_id, Gfx::IntSize size) =|
-    get_window_minimum_size(i32 window_id) => (Gfx::IntSize size)
+    window_minimum_size(i32 window_id) => (Gfx::IntSize size)
 
-    get_applet_rect_on_screen(i32 window_id) => (Gfx::IntRect rect)
+    applet_rect_on_screen(i32 window_id) => (Gfx::IntRect rect)
 
     start_window_resize(i32 window_id, i32 resize_direction) =|
 
@@ -112,16 +112,16 @@ endpoint WindowServer
     set_wallpaper_mode(DeprecatedString mode) =|
 
     set_screen_layout(::WindowServer::ScreenLayout screen_layout, bool save) => (bool success, DeprecatedString error_msg)
-    get_screen_layout() => (::WindowServer::ScreenLayout screen_layout)
+    screen_layout() => (::WindowServer::ScreenLayout screen_layout)
     save_screen_layout() => (bool success, DeprecatedString error_msg)
     show_screen_numbers(bool show) =|
 
     apply_workspace_settings(u32 rows, u32 columns, bool save) => (bool success)
-    get_workspace_settings() => (u32 rows, u32 columns, u32 max_rows, u32 max_columns)
+    workspace_settings() => (u32 rows, u32 columns, u32 max_rows, u32 max_columns)
 
     set_window_icon_bitmap(i32 window_id, Gfx::ShareableBitmap icon) =|
 
-    get_wallpaper() => (Gfx::ShareableBitmap wallpaper_bitmap)
+    wallpaper() => (Gfx::ShareableBitmap wallpaper_bitmap)
     set_window_cursor(i32 window_id, i32 cursor_type) =|
     set_window_custom_cursor(i32 window_id, Gfx::ShareableBitmap cursor) =|
 
@@ -129,22 +129,22 @@ endpoint WindowServer
     set_accepts_drag(bool accepts) =|
 
     set_system_theme(DeprecatedString theme_path, [UTF8] DeprecatedString theme_name, bool keep_desktop_background) => (bool success)
-    get_system_theme() => ([UTF8] DeprecatedString theme_name)
+    system_theme() => ([UTF8] DeprecatedString theme_name)
     refresh_system_theme() =|
 
     set_system_theme_override(Core::AnonymousBuffer buffer) => (bool success)
-    get_system_theme_override() => (Optional<Core::AnonymousBuffer> buffer)
+    system_theme_override() => (Optional<Core::AnonymousBuffer> buffer)
     clear_system_theme_override() =|
     is_system_theme_overridden() => (bool overridden)
 
     apply_cursor_theme(DeprecatedString name) =|
-    get_cursor_theme() => (DeprecatedString name)
+    cursor_theme() => (DeprecatedString name)
 
     set_cursor_highlight_radius(int radius) =|
-    get_cursor_highlight_radius() => (int radius)
+    cursor_highlight_radius() => (int radius)
 
     set_cursor_highlight_color(Gfx::Color color) =|
-    get_cursor_highlight_color() => (Gfx::Color color)
+    cursor_highlight_color() => (Gfx::Color color)
 
     set_system_fonts(DeprecatedString default_font_query, DeprecatedString fixed_width_font_query, DeprecatedString window_title_font_query) => (bool success)
     set_system_effects(Vector<bool> effects, u8 geometry) =|
@@ -156,22 +156,22 @@ endpoint WindowServer
     disable_display_link() =|
 
     set_global_cursor_position(Gfx::IntPoint position) =|
-    get_global_cursor_position() => (Gfx::IntPoint position)
+    global_cursor_position() => (Gfx::IntPoint position)
 
     set_mouse_acceleration(float factor) =|
-    get_mouse_acceleration() => (float factor)
+    mouse_acceleration() => (float factor)
 
     set_scroll_step_size(u32 step_size) =|
-    get_scroll_step_size() => (u32 step_size)
+    scroll_step_size() => (u32 step_size)
 
-    get_screen_bitmap(Optional<Gfx::IntRect> rect, Optional<u32> screen_index) => (Gfx::ShareableBitmap bitmap)
-    get_screen_bitmap_around_cursor(Gfx::IntSize size) => (Gfx::ShareableBitmap bitmap)
-    get_color_under_cursor() => (Optional<Gfx::Color> color)
+    screen_bitmap(Optional<Gfx::IntRect> rect, Optional<u32> screen_index) => (Gfx::ShareableBitmap bitmap)
+    screen_bitmap_around_cursor(Gfx::IntSize size) => (Gfx::ShareableBitmap bitmap)
+    color_under_cursor() => (Optional<Gfx::Color> color)
 
     pong() =|
 
     set_double_click_speed(int speed) =|
-    get_double_click_speed() => (int speed)
+    double_click_speed() => (int speed)
 
     set_mouse_buttons_switched(bool switched) =|
     are_mouse_buttons_switched() => (bool switched)
@@ -179,12 +179,12 @@ endpoint WindowServer
     set_natural_scroll(bool inverted) =|
     is_natural_scroll() => (bool inverted)
 
-    get_desktop_display_scale(u32 screen_index) => (int desktop_display_scale)
+    desktop_display_scale(u32 screen_index) => (int desktop_display_scale)
 
     set_flash_flush(bool enabled) =|
 
     set_window_parent_from_client(i32 client_id, i32 parent_id, i32 child_id) => ()
-    get_window_rect_from_client(i32 client_id, i32 window_id) => (Gfx::IntRect rect)
+    window_rect_from_client(i32 client_id, i32 window_id) => (Gfx::IntRect rect)
     add_window_stealing_for_client(i32 client_id, i32 window_id) => ()
     remove_window_stealing_for_client(i32 client_id, i32 window_id) => ()
     remove_window_stealing(i32 window_id) => ()

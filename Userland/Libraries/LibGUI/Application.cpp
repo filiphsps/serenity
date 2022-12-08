@@ -227,7 +227,7 @@ void Application::request_tooltip_show()
     Gfx::IntRect desktop_rect = Desktop::the().rect();
 
     int const margin = 30;
-    Gfx::IntPoint adjusted_pos = ConnectionToWindowServer::the().get_global_cursor_position();
+    Gfx::IntPoint adjusted_pos = ConnectionToWindowServer::the().global_cursor_position();
 
     adjusted_pos.translate_by(0, 14);
 

@@ -247,20 +247,20 @@ DeprecatedString Window::title() const
 {
     if (!is_visible())
         return m_title_when_windowless;
-    return ConnectionToWindowServer::the().get_window_title(m_window_id);
+    return ConnectionToWindowServer::the().window_title(m_window_id);
 }
 
 Gfx::IntRect Window::applet_rect_on_screen() const
 {
     VERIFY(m_window_type == WindowType::Applet);
-    return ConnectionToWindowServer::the().get_applet_rect_on_screen(m_window_id);
+    return ConnectionToWindowServer::the().applet_rect_on_screen(m_window_id);
 }
 
 Gfx::IntRect Window::rect() const
 {
     if (!is_visible())
         return m_rect_when_windowless;
-    return ConnectionToWindowServer::the().get_window_rect(m_window_id);
+    return ConnectionToWindowServer::the().window_rect(m_window_id);
 }
 
 void Window::set_rect(Gfx::IntRect const& a_rect)
@@ -289,7 +289,7 @@ Gfx::IntSize Window::minimum_size() const
     if (!is_visible())
         return m_minimum_size_when_windowless;
 
-    return ConnectionToWindowServer::the().get_window_minimum_size(m_window_id);
+    return ConnectionToWindowServer::the().window_minimum_size(m_window_id);
 }
 
 void Window::set_minimum_size(Gfx::IntSize size)

@@ -165,7 +165,7 @@ public:
         return decision;
     }
 
-    [[nodiscard]] WindowStack& get_rendering_window_stacks(WindowStack*& transitioning_window_stack)
+    [[nodiscard]] WindowStack& rendering_window_stacks(WindowStack*& transitioning_window_stack)
     {
         transitioning_window_stack = m_transitioning_to_window_stack;
         return *m_current_window_stack;

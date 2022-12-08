@@ -144,7 +144,7 @@ public:
     Gfx::Font const& window_title_font() const;
 
     bool set_screen_layout(ScreenLayout&&, bool, DeprecatedString&);
-    ScreenLayout get_screen_layout() const;
+    ScreenLayout screen_layout() const;
     bool save_screen_layout(DeprecatedString&);
 
     void set_acceleration_factor(double);
@@ -367,7 +367,7 @@ private:
 
     bool sync_config_to_disk();
 
-    [[nodiscard]] static WindowStack& get_rendering_window_stacks(WindowStack*&);
+    [[nodiscard]] static WindowStack& rendering_window_stacks(WindowStack*&);
 
     RefPtr<Cursor> m_hidden_cursor;
     RefPtr<Cursor> m_arrow_cursor;
@@ -489,7 +489,7 @@ inline IterationDecision WindowManager::for_each_visible_window_from_back_to_fro
     auto* window_stack = specific_stack;
     WindowStack* transitioning_to_window_stack = nullptr;
     if (!window_stack)
-        window_stack = &get_rendering_window_stacks(transitioning_to_window_stack);
+        window_stack = &rendering_window_stacks(transitioning_to_window_stack);
     auto for_each_window = [&]<WindowType window_type>() {
         if constexpr (is_stationary_window_type(window_type)) {
             auto& stationary_stack = window_stack->stationary_window_stack();
@@ -528,7 +528,7 @@ inline IterationDecision WindowManager::for_each_visible_window_from_front_to_ba
     auto* window_stack = specific_stack;
     WindowStack* transitioning_to_window_stack = nullptr;
     if (!window_stack)
-        window_stack = &get_rendering_window_stacks(transitioning_to_window_stack);
+        window_stack = &rendering_window_stacks(transitioning_to_window_stack);
     auto for_each_window = [&]<WindowType window_type>() {
         if constexpr (is_stationary_window_type(window_type)) {
             auto& stationary_stack = window_stack->stationary_window_stack();

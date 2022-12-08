@@ -115,7 +115,7 @@ ThemeWidget::ThemeWidget()
     m_cursors_tableview->set_column_width(0, 25);
     m_cursors_tableview->model()->invalidate();
 
-    auto theme_name = GUI::ConnectionToWindowServer::the().get_cursor_theme();
+    auto theme_name = GUI::ConnectionToWindowServer::the().cursor_theme();
     m_mouse_cursor_model->change_theme(theme_name);
 
     m_theme_name_box = find_descendant_of_type_named<GUI::ComboBox>("theme_name_box");

@@ -228,7 +228,7 @@ ErrorOr<NonnullRefPtr<GUI::Menu>> build_system_menu(GUI::Window& window)
     g_themes_menu->set_icon(Gfx::Bitmap::try_load_from_file("/res/icons/16x16/themes.png"sv).release_value_but_fixme_should_propagate_errors());
 
     g_themes = Gfx::list_installed_system_themes();
-    auto current_theme_name = GUI::ConnectionToWindowServer::the().get_system_theme();
+    auto current_theme_name = GUI::ConnectionToWindowServer::the().system_theme();
 
     {
         int theme_identifier = 0;
@@ -250,7 +250,7 @@ ErrorOr<NonnullRefPtr<GUI::Menu>> build_system_menu(GUI::Window& window)
     GUI::Application::the()->on_theme_change = [&]() {
         if (g_themes_menu->is_visible())
             return;
-        auto current_theme_name = GUI::ConnectionToWindowServer::the().get_system_theme();
+        auto current_theme_name = GUI::ConnectionToWindowServer::the().system_theme();
         auto theme_overridden = GUI::ConnectionToWindowServer::the().is_system_theme_overridden();
         for (size_t index = 0; index < g_themes.size(); ++index) {
             auto* action = g_themes_menu->action_at(index);

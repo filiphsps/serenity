@@ -159,7 +159,7 @@ private:
     virtual void mousedown_event(GUI::MouseEvent&) override { m_event_loop->quit(1); }
     virtual void mousemove_event(GUI::MouseEvent&) override
     {
-        auto new_col = ConnectionToWindowServer::the().get_color_under_cursor();
+        auto new_col = ConnectionToWindowServer::the().color_under_cursor();
         if (!new_col.has_value())
             return;
         if (new_col == m_col)

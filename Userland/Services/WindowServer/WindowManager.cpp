@@ -142,7 +142,7 @@ bool WindowManager::set_screen_layout(ScreenLayout&& screen_layout, bool save, D
     return true;
 }
 
-ScreenLayout WindowManager::get_screen_layout() const
+ScreenLayout WindowManager::screen_layout() const
 {
     return Screen::layout();
 }
@@ -2208,9 +2208,9 @@ void WindowManager::set_window_with_active_menu(Window* window)
         m_window_with_active_menu = nullptr;
 }
 
-WindowStack& WindowManager::get_rendering_window_stacks(WindowStack*& transitioning_window_stack)
+WindowStack& WindowManager::rendering_window_stacks(WindowStack*& transitioning_window_stack)
 {
-    return Compositor::the().get_rendering_window_stacks(transitioning_window_stack);
+    return Compositor::the().rendering_window_stacks(transitioning_window_stack);
 }
 
 void WindowManager::apply_cursor_theme(DeprecatedString const& theme_name)

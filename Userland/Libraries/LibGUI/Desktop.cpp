@@ -56,7 +56,7 @@ DeprecatedString Desktop::wallpaper_path() const
 
 RefPtr<Gfx::Bitmap> Desktop::wallpaper_bitmap() const
 {
-    return ConnectionToWindowServer::the().get_wallpaper().bitmap();
+    return ConnectionToWindowServer::the().wallpaper().bitmap();
 }
 
 bool Desktop::set_wallpaper(RefPtr<Gfx::Bitmap> wallpaper_bitmap, Optional<DeprecatedString> path)

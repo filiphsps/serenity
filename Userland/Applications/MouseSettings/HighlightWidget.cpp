@@ -15,7 +15,7 @@ HighlightWidget::HighlightWidget()
 
     m_highlight_preview = find_descendant_of_type_named<GUI::Frame>("preview_frame")->add<MouseSettings::HighlightPreviewWidget>(palette());
 
-    auto current_highlight_color = GUI::ConnectionToWindowServer::the().get_cursor_highlight_color();
+    auto current_highlight_color = GUI::ConnectionToWindowServer::the().cursor_highlight_color();
     auto current_highlight_color_no_alpha = current_highlight_color;
     current_highlight_color_no_alpha.set_alpha(255);
     m_highlight_color_input = *find_descendant_of_type_named<GUI::ColorInput>("highlight_color_input");
@@ -33,7 +33,7 @@ HighlightWidget::HighlightWidget()
     };
 
     m_highlight_radius_slider = *find_descendant_of_type_named<GUI::Slider>("highlight_radius_slider");
-    m_highlight_radius_slider->set_value(GUI::ConnectionToWindowServer::the().get_cursor_highlight_radius());
+    m_highlight_radius_slider->set_value(GUI::ConnectionToWindowServer::the().cursor_highlight_radius());
     m_highlight_radius_slider->on_change = [&](int) {
         m_highlight_preview->set_radius(highlight_radius());
         set_modified(true);

@@ -144,7 +144,7 @@ static DeprecatedString display_name_from_edid(EDID::Parser const& edid)
 
 void MonitorSettingsWidget::load_current_settings()
 {
-    m_screen_layout = GUI::ConnectionToWindowServer::the().get_screen_layout();
+    m_screen_layout = GUI::ConnectionToWindowServer::the().screen_layout();
 
     m_screens.clear();
     m_screen_edids.clear();
@@ -226,7 +226,7 @@ void MonitorSettingsWidget::apply_settings()
 {
     // Fetch the latest configuration again, in case it has been changed by someone else.
     // This isn't technically race free, but if the user automates changing settings we can't help...
-    auto current_layout = GUI::ConnectionToWindowServer::the().get_screen_layout();
+    auto current_layout = GUI::ConnectionToWindowServer::the().screen_layout();
     if (m_screen_layout != current_layout) {
         auto result = GUI::ConnectionToWindowServer::the().set_screen_layout(m_screen_layout, false);
         if (result.success()) {
