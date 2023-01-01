@@ -5,10 +5,10 @@
  */
 
 #include <LibGfx/Bitmap.h>
-#include <LibGfx/ClassicStylePainter.h>
 #include <LibGfx/Painter.h>
 #include <LibGfx/Palette.h>
 #include <LibGfx/StylePainter.h>
+#include <LibGfx/Styles/Classic/ClassicStylePainter.h>
 
 namespace Gfx {
 

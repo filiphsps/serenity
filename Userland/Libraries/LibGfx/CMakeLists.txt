@@ -5,8 +5,6 @@ set(SOURCES
     BMPWriter.cpp
     Bitmap.cpp
     BitmapMixer.cpp
-    ClassicStylePainter.cpp
-    ClassicWindowTheme.cpp
     Color.cpp
     CursorParams.cpp
     DDSLoader.cpp
@@ -44,6 +42,8 @@ set(SOURCES
     ShareableBitmap.cpp
     Size.cpp
     StylePainter.cpp
+    Styles/Classic/ClassicStylePainter.cpp
+    Styles/Classic/ClassicWindowTheme.cpp
     SystemTheme.cpp
     TextDirection.cpp
     TextLayout.cpp
