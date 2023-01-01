@@ -4,14 +4,15 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include <LibGfx/ClassicWindowTheme.h>
+#include <LibGfx/Styles/Classic/ClassicWindowTheme.h>
+#include <LibGfx/Styles/Modern/ModernWindowTheme.h>
 #include <LibGfx/WindowTheme.h>
 
 namespace Gfx {
 
 WindowTheme& WindowTheme::current()
 {
-    static ClassicWindowTheme theme;
+    static ModernWindowTheme theme;
     return theme;
 }
 

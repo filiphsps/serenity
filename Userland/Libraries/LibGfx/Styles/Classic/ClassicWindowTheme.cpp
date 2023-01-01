@@ -6,11 +6,11 @@
  */
 
 #include <LibGfx/Bitmap.h>
-#include <LibGfx/ClassicWindowTheme.h>
 #include <LibGfx/Font/FontDatabase.h>
 #include <LibGfx/Painter.h>
 #include <LibGfx/Palette.h>
 #include <LibGfx/StylePainter.h>
+#include <LibGfx/Styles/Classic/ClassicWindowTheme.h>
 
 namespace Gfx {
 

@@ -8,13 +8,13 @@
 #include <LibGfx/Painter.h>
 #include <LibGfx/Palette.h>
 #include <LibGfx/StylePainter.h>
-#include <LibGfx/Styles/Classic/ClassicStylePainter.h>
+#include <LibGfx/Styles/Modern/ModernStylePainter.h>
 
 namespace Gfx {
 
 BaseStylePainter& StylePainter::current()
 {
-    static ClassicStylePainter style;
+    static ModernStylePainter style;
     return style;
 }
 

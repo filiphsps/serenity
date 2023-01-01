@@ -1,9 +1,5 @@
 /*
- * Copyright (c) 2018-2020, Andreas Kling <kling@serenityos.org>
- * Copyright (c) 2020, Sarah Taube <metalflakecobaltpaint@gmail.com>
- * Copyright (c) 2021, Filiph Sandström <filiph.sandstrom@filfatstudios.com>
- * Copyright (c) 2022, Cameron Youell <cameronyouell@gmail.com>
- * Copyright (c) 2022, the SerenityOS developers.
+ * Copyright (c) 2023, Filiph Sandström <filiph.sandstrom@filfatstudios.com>
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
@@ -14,11 +10,11 @@
 #include <LibGfx/CharacterBitmap.h>
 #include <LibGfx/Painter.h>
 #include <LibGfx/Palette.h>
-#include <LibGfx/Styles/Classic/ClassicStylePainter.h>
+#include <LibGfx/Styles/Modern/ModernStylePainter.h>
 
 namespace Gfx {
 
-void ClassicStylePainter::paint_tab_button(Painter& painter, IntRect const& rect, Palette const& palette, bool active, bool hovered, bool enabled, GUI::TabWidget::TabPosition position, bool in_active_window, bool accented)
+void ModernStylePainter::paint_tab_button(Painter& painter, IntRect const& rect, Palette const& palette, bool active, bool hovered, bool enabled, GUI::TabWidget::TabPosition position, bool in_active_window, bool accented)
 {
     Color base_color = palette.button();
     Color highlight_color2 = palette.threed_highlight();
@@ -120,128 +116,25 @@ void ClassicStylePainter::paint_tab_button(Painter& painter, IntRect const& rect
     }
 }
 
-static void paint_button_new(Painter& painter, IntRect const& a_rect, Palette const& palette, ButtonStyle style, bool pressed, bool checked, bool hovered, bool enabled, bool focused, bool default_button)
+void ModernStylePainter::paint_button(Painter& painter, IntRect const& rect, Palette const&, ButtonStyle, bool pressed, bool hovered, bool checked, bool enabled, bool focused, bool)
 {
-    Color button_color = palette.button();
-    Color highlight_color = palette.threed_highlight();
-    Color shadow_color1 = palette.threed_shadow1();
-    Color shadow_color2 = palette.threed_shadow2();
+    auto color = Gfx::Color(241, 241, 241);
+    if (enabled)
+        color = Gfx::Color(241, 241, 241);
 
-    if (checked && enabled) {
-        if (hovered)
-            button_color = palette.hover_highlight();
-        else
-            button_color = palette.button();
-    } else if (hovered && enabled)
-        button_color = palette.hover_highlight();
+    if (pressed)
+        color = Gfx::Color(0, 205, 205);
+    if (checked)
+        color = Gfx::Color(0, 205, 205);
+    if (hovered)
+        color = Gfx::Color(205, 205, 205);
+    if (focused)
+        color = Gfx::Color(0, 232, 232);
 
-    PainterStateSaver saver(painter);
-
-    auto rect = a_rect;
-    if (focused || default_button) {
-        painter.draw_rect(a_rect, palette.threed_shadow2());
-        rect.shrink(2, 2);
-    }
-
-    painter.translate(rect.location());
-
-    if (pressed || checked) {
-        // Base
-        Gfx::IntRect base_rect { 1, 1, rect.width() - 2, rect.height() - 2 };
-
-        if (checked && !pressed)
-            painter.fill_rect_with_dither_pattern(base_rect, palette.button().lightened(1.3f), palette.button());
-        else
-            painter.fill_rect(base_rect, button_color);
-
-        // Top shadow
-        painter.draw_line({ 0, 0 }, { rect.width() - 2, 0 }, shadow_color2);
-        painter.draw_line({ 0, 0 }, { 0, rect.height() - 2 }, shadow_color2);
-
-        // Sunken shadow
-        painter.draw_line({ 1, 1 }, { rect.width() - 3, 1 }, shadow_color1);
-        painter.draw_line({ 1, 2 }, { 1, rect.height() - 3 }, shadow_color1);
-
-        // Outer highlight
-        painter.draw_line({ 0, rect.height() - 1 }, { rect.width() - 1, rect.height() - 1 }, highlight_color);
-        painter.draw_line({ rect.width() - 1, 0 }, { rect.width() - 1, rect.height() - 2 }, highlight_color);
-
-        // Inner highlight
-        painter.draw_line({ 1, rect.height() - 2 }, { rect.width() - 2, rect.height() - 2 }, palette.button());
-        painter.draw_line({ rect.width() - 2, 1 }, { rect.width() - 2, rect.height() - 3 }, palette.button());
-    } else {
-        // Base
-        painter.fill_rect({ 0, 0, rect.width(), rect.height() }, button_color);
-
-        // Top highlight
-        if (style == ButtonStyle::Normal) {
-            painter.draw_line({ 0, 0 }, { rect.width() - 2, 0 }, highlight_color);
-            painter.draw_line({ 0, 0 }, { 0, rect.height() - 2 }, highlight_color);
-        } else if (style == ButtonStyle::ThickCap) {
-            painter.draw_line({ 1, 1 }, { rect.width() - 2, 1 }, highlight_color);
-            painter.draw_line({ 1, 1 }, { 1, rect.height() - 2 }, highlight_color);
-        }
-
-        // Outer shadow
-        painter.draw_line({ 0, rect.height() - 1 }, { rect.width() - 1, rect.height() - 1 }, shadow_color2);
-        painter.draw_line({ rect.width() - 1, 0 }, { rect.width() - 1, rect.height() - 2 }, shadow_color2);
-
-        // Inner shadow
-        painter.draw_line({ 1, rect.height() - 2 }, { rect.width() - 2, rect.height() - 2 }, shadow_color1);
-        painter.draw_line({ rect.width() - 2, 1 }, { rect.width() - 2, rect.height() - 3 }, shadow_color1);
-    }
+    painter.fill_rect_with_rounded_corners({ rect.x(), rect.y(), rect.width(), rect.height() }, color, 2);
 }
 
-void ClassicStylePainter::paint_button(Painter& painter, IntRect const& rect, Palette const& palette, ButtonStyle button_style, bool pressed, bool hovered, bool checked, bool enabled, bool focused, bool default_button)
-{
-    if (button_style == ButtonStyle::Normal || button_style == ButtonStyle::ThickCap)
-        return paint_button_new(painter, rect, palette, button_style, pressed, checked, hovered, enabled, focused, default_button);
-
-    if (button_style == ButtonStyle::Coolbar && !enabled)
-        return;
-
-    Color button_color = palette.button();
-    Color highlight_color = palette.threed_highlight();
-    Color shadow_color = button_style == ButtonStyle::Coolbar ? palette.threed_shadow1() : palette.threed_shadow2();
-
-    PainterStateSaver saver(painter);
-    painter.translate(rect.location());
-
-    if (pressed || checked) {
-        // Base
-        IntRect base_rect { 1, 1, rect.width() - 2, rect.height() - 2 };
-        if (button_style == ButtonStyle::Coolbar) {
-            if (checked && !pressed) {
-                painter.fill_rect_with_dither_pattern(base_rect, palette.button().lightened(1.3f), Color());
-            } else {
-                painter.fill_rect(base_rect, button_color);
-            }
-        }
-
-        // Sunken shadow
-        painter.draw_line({ 1, 1 }, { rect.width() - 2, 1 }, shadow_color);
-        painter.draw_line({ 1, 2 }, { 1, rect.height() - 2 }, shadow_color);
-
-        // Bottom highlight
-        painter.draw_line({ rect.width() - 2, 1 }, { rect.width() - 2, rect.height() - 3 }, highlight_color);
-        painter.draw_line({ 1, rect.height() - 2 }, { rect.width() - 2, rect.height() - 2 }, highlight_color);
-    } else if (hovered) {
-        if (button_style == ButtonStyle::Coolbar) {
-            // Base
-            painter.fill_rect({ 1, 1, rect.width() - 2, rect.height() - 2 }, button_color);
-        }
-
-        // Top highlight
-        painter.draw_line({ 1, 1 }, { rect.width() - 2, 1 }, highlight_color);
-        painter.draw_line({ 1, 2 }, { 1, rect.height() - 2 }, highlight_color);
-
-        // Bottom shadow
-        painter.draw_line({ rect.width() - 2, 1 }, { rect.width() - 2, rect.height() - 3 }, shadow_color);
-        painter.draw_line({ 1, rect.height() - 2 }, { rect.width() - 2, rect.height() - 2 }, shadow_color);
-    }
-}
-
-void ClassicStylePainter::paint_frame(Painter& painter, IntRect const& rect, Palette const& palette, FrameShape shape, FrameShadow shadow, int thickness, bool skip_vertical_lines)
+void ModernStylePainter::paint_frame(Painter& painter, IntRect const& rect, Palette const& palette, FrameShape shape, FrameShadow shadow, int thickness, bool skip_vertical_lines)
 {
     if (shape == Gfx::FrameShape::NoFrame)
         return;
@@ -316,49 +209,12 @@ void ClassicStylePainter::paint_frame(Painter& painter, IntRect const& rect, Pal
     }
 }
 
-void ClassicStylePainter::paint_window_frame(Painter& painter, IntRect const& rect, Palette const& palette)
+void ModernStylePainter::paint_window_frame(Painter& painter, IntRect const& rect, Palette const&)
 {
-    Color base_color = palette.button();
-    Color dark_shade = palette.threed_shadow2();
-    Color mid_shade = palette.threed_shadow1();
-    Color light_shade = palette.threed_highlight();
-    auto border_thickness = palette.window_border_thickness();
-    auto border_radius = palette.window_border_radius();
-
-    if (border_radius > 0) {
-        // FIXME: This will draw "useless" pixels that'll get drawn over by the window contents.
-        // preferably we should just remove the corner pixels from the completely drawn window
-        // but I don't know how to do that yet. :^)
-        AntiAliasingPainter aa_painter { painter };
-        aa_painter.fill_rect_with_rounded_corners(rect, base_color, border_radius);
-        return;
-    }
-
-    painter.draw_rect_with_thickness({ rect.x() + border_thickness / 2,
-                                         rect.y() + border_thickness / 2,
-                                         rect.width() - border_thickness,
-                                         rect.height() - border_thickness },
-        base_color, border_thickness);
-
-    painter.draw_line(rect.top_left().translated(0, 1), rect.bottom_left(), base_color);
-    painter.draw_line(rect.top_left().translated(1, 1), rect.top_right().translated(-1, 1), light_shade);
-    painter.draw_line(rect.top_left().translated(1, 1), rect.bottom_left().translated(1, -1), light_shade);
-    painter.draw_line(rect.top_left().translated(2, 2), rect.top_right().translated(-2, 2), base_color);
-    painter.draw_line(rect.top_left().translated(2, 2), rect.bottom_left().translated(2, -2), base_color);
-    painter.draw_line(rect.top_left().translated(3, 3), rect.top_right().translated(-3, 3), base_color);
-    painter.draw_line(rect.top_left().translated(3, 3), rect.bottom_left().translated(3, -3), base_color);
-
-    painter.draw_line(rect.top_right(), rect.bottom_right(), dark_shade);
-    painter.draw_line(rect.top_right().translated(-1, 1), rect.bottom_right().translated(-1, -1), mid_shade);
-    painter.draw_line(rect.top_right().translated(-2, 2), rect.bottom_right().translated(-2, -2), base_color);
-    painter.draw_line(rect.top_right().translated(-3, 3), rect.bottom_right().translated(-3, -3), base_color);
-    painter.draw_line(rect.bottom_left(), rect.bottom_right(), dark_shade);
-    painter.draw_line(rect.bottom_left().translated(1, -1), rect.bottom_right().translated(-1, -1), mid_shade);
-    painter.draw_line(rect.bottom_left().translated(2, -2), rect.bottom_right().translated(-2, -2), base_color);
-    painter.draw_line(rect.bottom_left().translated(3, -3), rect.bottom_right().translated(-3, -3), base_color);
+    painter.fill_rect({ rect.x(), rect.y(), rect.width(), rect.height() }, Gfx::Color(241, 241, 241));
 }
 
-void ClassicStylePainter::paint_progressbar(Painter& painter, IntRect const& rect, Palette const& palette, int min, int max, int value, StringView text, Orientation orientation)
+void ModernStylePainter::paint_progressbar(Painter& painter, IntRect const& rect, Palette const& palette, int min, int max, int value, StringView text, Orientation orientation)
 {
     // First we fill the entire widget with the gradient. This incurs a bit of
     // overdraw but ensures a consistent look throughout the progression.
@@ -394,7 +250,7 @@ void ClassicStylePainter::paint_progressbar(Painter& painter, IntRect const& rec
         painter.draw_text(rect.translated(0, 0), text, TextAlignment::Center, palette.base_text());
 }
 
-void ClassicStylePainter::paint_radio_button(Painter& painter, IntRect const& a_rect, Palette const& palette, bool is_checked, bool is_being_pressed)
+void ModernStylePainter::paint_radio_button(Painter& painter, IntRect const& a_rect, Palette const& palette, bool is_checked, bool is_being_pressed)
 {
     // Outer top left arc, starting at bottom left point.
     constexpr Gfx::IntPoint outer_top_left_arc[] = {
@@ -552,7 +408,7 @@ static constexpr Gfx::CharacterBitmap s_checked_bitmap {
     9, 9
 };
 
-void ClassicStylePainter::paint_check_box(Painter& painter, IntRect const& rect, Palette const& palette, bool is_enabled, bool is_checked, bool is_being_pressed)
+void ModernStylePainter::paint_check_box(Painter& painter, IntRect const& rect, Palette const& palette, bool is_enabled, bool is_checked, bool is_being_pressed)
 {
     painter.fill_rect(rect, is_enabled ? palette.base() : palette.window());
     paint_frame(painter, rect, palette, Gfx::FrameShape::Container, Gfx::FrameShadow::Sunken, 2);
@@ -567,12 +423,12 @@ void ClassicStylePainter::paint_check_box(Painter& painter, IntRect const& rect,
     }
 }
 
-void ClassicStylePainter::paint_transparency_grid(Painter& painter, IntRect const& rect, Palette const& palette)
+void ModernStylePainter::paint_transparency_grid(Painter& painter, IntRect const& rect, Palette const& palette)
 {
     painter.fill_rect_with_checkerboard(rect, { 8, 8 }, palette.base().darkened(0.9), palette.base());
 }
 
-void ClassicStylePainter::paint_simple_rect_shadow(Painter& painter, IntRect const& containing_rect, Bitmap const& shadow_bitmap, bool shadow_includes_frame, bool fill_content)
+void ModernStylePainter::paint_simple_rect_shadow(Painter& painter, IntRect const& containing_rect, Bitmap const& shadow_bitmap, bool shadow_includes_frame, bool fill_content)
 {
     // The layout of the shadow_bitmap is defined like this:
     // +---------+----+---------+----+----+----+

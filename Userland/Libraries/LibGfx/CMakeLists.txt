@@ -44,6 +44,8 @@ set(SOURCES
     StylePainter.cpp
     Styles/Classic/ClassicStylePainter.cpp
     Styles/Classic/ClassicWindowTheme.cpp
+    Styles/Modern/ModernStylePainter.cpp
+    Styles/Modern/ModernWindowTheme.cpp
     SystemTheme.cpp
     TextDirection.cpp
     TextLayout.cpp
