@@ -43,6 +43,7 @@ set(SOURCES
     Event.cpp
     FileIconProvider.cpp
     FilePicker.cpp
+    FileSystemMetadata.cpp
     FileSystemModel.cpp
     FilteringProxyModel.cpp
     FontPicker.cpp

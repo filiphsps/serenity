@@ -10,6 +10,7 @@
 #include <AK/Queue.h>
 #include <LibGUI/Button.h>
 #include <LibGUI/Dialog.h>
+#include <LibGUI/FileSystemMetadata.h>
 #include <LibGUI/FileSystemModel.h>
 #include <LibGUI/ImageWidget.h>
 #include <LibGUI/Label.h>
@@ -97,4 +98,5 @@ private:
     mode_t m_old_mode { 0 };
     bool m_permissions_dirty { false };
     bool m_name_dirty { false };
+    GUI::FileSystemMetadata m_metadata;
 };

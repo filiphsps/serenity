@@ -10,6 +10,7 @@
 #include <AK/HashMap.h>
 #include <LibCore/DateTime.h>
 #include <LibCore/FileWatcher.h>
+#include <LibGUI/FileSystemMetadata.h>
 #include <LibGUI/Model.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -73,6 +74,8 @@ public:
 
         DeprecatedString full_path() const;
 
+        FileSystemMetadata metadata() const { return m_metadata; }
+
     private:
         friend class FileSystemModel;
 
@@ -99,6 +102,8 @@ public:
         bool fetch_data(DeprecatedString const& full_path, bool is_root);
 
         OwnPtr<Node> create_child(DeprecatedString const& child_name);
+
+        FileSystemMetadata m_metadata;
     };
 
     static NonnullRefPtr<FileSystemModel> create(DeprecatedString root_path = "/", Mode mode = Mode::FilesAndDirectories)
@@ -180,5 +185,4 @@ private:
 
     RefPtr<Core::FileWatcher> m_file_watcher;
 };
-
 }

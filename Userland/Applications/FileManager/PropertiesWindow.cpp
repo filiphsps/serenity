@@ -52,6 +52,8 @@ PropertiesWindow::PropertiesWindow(DeprecatedString const& path, Window* parent_
 
 ErrorOr<void> PropertiesWindow::create_widgets(bool disable_rename)
 {
+    m_metadata = TRY(GUI::FileSystemMetadata::try_create(m_path));
+
     auto main_widget = TRY(set_main_widget<GUI::Widget>());
     TRY(main_widget->try_set_layout<GUI::VerticalBoxLayout>(4, 6));
     main_widget->set_fill_with_background_color(true);
@@ -187,7 +189,10 @@ ErrorOr<void> PropertiesWindow::create_widgets(bool disable_rename)
 
 void PropertiesWindow::update()
 {
-    m_icon->set_bitmap(GUI::FileIconProvider::icon_for_path(make_full_path(m_name), m_mode).bitmap_for_size(32));
+    if (m_metadata.icon().has_value())
+        m_icon->set_bitmap(m_metadata.icon().value().bitmap_for_size(32));
+    else
+        m_icon->set_bitmap(GUI::FileIconProvider::icon_for_path(make_full_path(m_name), m_mode).bitmap_for_size(32));
     set_title(DeprecatedString::formatted("{} - Properties", m_name));
 }
 

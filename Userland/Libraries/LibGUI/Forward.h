@@ -29,6 +29,7 @@ class DialogButton;
 class DragEvent;
 class DropEvent;
 class EditingEngine;
+class FileSystemMetadata;
 class FileSystemModel;
 class Frame;
 class GroupBox;

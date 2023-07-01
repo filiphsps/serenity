@@ -2,6 +2,7 @@
  * Copyright (c) 2018-2020, Andreas Kling <kling@serenityos.org>
  * Copyright (c) 2021, sin-ack <sin-ack@protonmail.com>
  * Copyright (c) 2022, the SerenityOS developers.
+ * Copyright (c) 2023, Filiph Sandström <filiph.sandstrom@filfatstudios.com>
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
@@ -16,6 +17,7 @@
 #include <LibFileSystem/FileSystem.h>
 #include <LibGUI/AbstractView.h>
 #include <LibGUI/FileIconProvider.h>
+#include <LibGUI/FileSystemMetadata.h>
 #include <LibGUI/FileSystemModel.h>
 #include <LibGUI/Painter.h>
 #include <LibGfx/Bitmap.h>
@@ -75,6 +77,12 @@ bool FileSystemModel::Node::fetch_data(DeprecatedString const& full_path, bool i
 
     if (S_ISDIR(mode)) {
         is_accessible_directory = access(full_path.characters(), R_OK | X_OK) == 0;
+    }
+
+    if (is_accessible_directory) {
+        auto metadata_or_error = FileSystemMetadata::try_create(full_path);
+        if (!metadata_or_error.is_error())
+            m_metadata = metadata_or_error.release_value();
     }
 
     return true;
@@ -631,6 +639,8 @@ Icon FileSystemModel::icon_for(Node const& node) const
     }
 
     if (node.is_directory()) {
+        if (node.metadata().icon().has_value())
+            return node.metadata().icon().value();
         if (node.full_path() == Core::StandardPaths::home_directory()) {
             if (node.is_selected())
                 return FileIconProvider::home_directory_open_icon();
