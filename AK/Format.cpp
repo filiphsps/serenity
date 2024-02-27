@@ -30,6 +30,8 @@
 
 #if defined(AK_OS_ANDROID)
 #    include <android/log.h>
+#elif defined(AK_OS_IOS)
+#    include <syslog.h>
 #endif
 
 #ifndef KERNEL
@@ -1248,8 +1250,10 @@ void vdbg(StringView fmtstr, TypeErasedFormatParams& params, bool newline)
     }
 #    endif
 #endif
-#ifdef AK_OS_ANDROID
+#if defined(AK_OS_ANDROID)
     __android_log_write(ANDROID_LOG_DEBUG, s_log_tag_name, string.characters_without_null_termination());
+#elif defined(AK_OS_IOS)
+    syslog(LOG_WARNING, "%s", string.characters_without_null_termination());
 #else
     dbgputstr(string.characters_without_null_termination(), string.length());
 #endif

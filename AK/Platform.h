@@ -69,7 +69,11 @@
 #endif
 
 #if defined(__APPLE__) && defined(__MACH__)
+#if defined(__IOS__)
+#    define AK_OS_IOS
+#else
 #    define AK_OS_MACOS
+#endif
 #    define AK_OS_BSD_GENERIC
 #endif
 

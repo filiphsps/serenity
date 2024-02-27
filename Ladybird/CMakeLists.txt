@@ -1,3 +1,9 @@
+# Copyright (c) 2022-2023, Andrew Kaster <akaster@serenityos.org>
+# Copyright (c) 2024, Filiph Sandström <filiph.sandstrom@filfatstudios.com>
+#
+# SPDX-License-Identifier: BSD-2-Clause
+#
+
 cmake_minimum_required(VERSION 3.23)
 
 project(ladybird
@@ -8,8 +14,12 @@ project(ladybird
 
 include(GNUInstallDirs)
 
-if (ANDROID)
+if (ANDROID OR IOS)
     set(BUILD_SHARED_LIBS OFF)
+endif()
+
+if (IOS)
+    add_compile_definitions(__IOS__)
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
@@ -89,8 +99,8 @@ else()
     serenity_option(ENABLE_QT ON CACHE BOOL "Build ladybird application using Qt GUI")
 endif()
 
-if (ANDROID AND ENABLE_QT)
-    message(STATUS "Disabling Qt for Android")
+if ((ANDROID OR IOS) AND ENABLE_QT)
+    message(STATUS "Disabling Qt for Android/iOS")
     set(ENABLE_QT OFF CACHE BOOL "" FORCE)
 endif()
 
@@ -131,6 +141,14 @@ if (ENABLE_QT)
         Qt/main.cpp
     )
     target_link_libraries(ladybird PRIVATE Qt::Core Qt::Gui Qt::Network Qt::Widgets)
+elseif (IOS)
+    add_executable(ladybird MACOSX_BUNDLE
+        ${SOURCES}
+        iOS/src/main.mm
+    )
+
+    target_include_directories(ladybird PRIVATE iOS/src)
+    target_link_libraries(ladybird PRIVATE LibUnicode)
 elseif (APPLE)
     add_executable(ladybird MACOSX_BUNDLE
         ${SOURCES}
@@ -148,6 +166,7 @@ elseif (APPLE)
         AppKit/UI/TabController.mm
         AppKit/Utilities/Conversions.mm
     )
+
     target_include_directories(ladybird PRIVATE AppKit)
     target_link_libraries(ladybird PRIVATE "-framework Cocoa" LibUnicode)
     target_compile_options(ladybird PRIVATE
@@ -235,23 +254,31 @@ add_dependencies(ladybird ${ladybird_helper_processes})
 function(create_ladybird_bundle target_name)
     set_target_properties(${target_name} PROPERTIES
         OUTPUT_NAME "Ladybird"
+        ARCHIVE_OUTPUT_NAME "Ladybird"
         MACOSX_BUNDLE TRUE
         WIN32_EXECUTABLE TRUE
         XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER org.SerenityOS.${target_name}
+        XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME app_icon.icns
         MACOSX_BUNDLE_INFO_PLIST ${SERENITY_SOURCE_DIR}/Ladybird/Info.plist.in
         MACOSX_BUNDLE_GUI_IDENTIFIER org.SerenityOS.${target_name}
         MACOSX_BUNDLE_ICON_FILE app_icon.icns
         MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+        MACOSX_BUNDLE_LONG_VERSION_STRING ${PROJECT_VERSION}
         MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
         MACOSX_BUNDLE_INFO_STRING ${PROJECT_DESCRIPTION}
         MACOSX_BUNDLE_COPYRIGHT "Copyright (c) 2018-2024, the SerenityOS developers"
     )
 
     if (APPLE)
-        set(bundle_dir "$<TARGET_BUNDLE_DIR:${target_name}>")
+        if (IOS)
+            set(bundle_dir "$<TARGET_BUNDLE_DIR:${target_name}>")
+        else()
+            set(bundle_dir "$<TARGET_BUNDLE_DIR:${target_name}>/Contents/Resources")
+        endif()
+
         add_custom_command(TARGET ${target_name} POST_BUILD
-            COMMAND "${CMAKE_COMMAND}" -E make_directory "${bundle_dir}/Contents/Resources"
-            COMMAND "iconutil" --convert icns "${SERENITY_SOURCE_DIR}/Ladybird/Icons/macos/app_icon.iconset" --output "${bundle_dir}/Contents/Resources/app_icon.icns"
+            COMMAND "${CMAKE_COMMAND}" -E make_directory "${bundle_dir}"
+            COMMAND "iconutil" --convert icns "${SERENITY_SOURCE_DIR}/Ladybird/Icons/macos/app_icon.iconset" --output "${bundle_dir}/app_icon.icns"
         )
     endif()
 endfunction()
@@ -261,9 +288,12 @@ set_helper_process_properties(${ladybird_helper_processes})
 
 include(cmake/ResourceFiles.cmake)
 set(resource_base_dir "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_DATADIR}/Lagom")
-if (APPLE)
+if (IOS)
+    set(resource_base_dir "$<TARGET_BUNDLE_DIR:ladybird>")
+elseif(APPLE)
     set(resource_base_dir "$<TARGET_BUNDLE_DIR:ladybird>/Contents/Resources")
 endif()
+
 copy_resources_to_build(${resource_base_dir} ladybird)
 
 if(NOT CMAKE_SKIP_INSTALL_RULES)

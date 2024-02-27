@@ -26,12 +26,24 @@ install(TARGETS ladybird
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-install(TARGETS ${ladybird_helper_processes}
-  EXPORT ladybirdTargets
-  RUNTIME
-    COMPONENT ladybird_Runtime
-    DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}
-)
+if (IOS)
+  install(TARGETS ${ladybird_helper_processes}
+    EXPORT ladybirdTargets
+    RUNTIME
+      COMPONENT ladybird_Runtime
+      DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}
+    BUNDLE
+      COMPONENT ladybird_Runtime
+      DESTINATION bundle
+  )
+else()
+  install(TARGETS ${ladybird_helper_processes}
+    EXPORT ladybirdTargets
+    RUNTIME
+      COMPONENT ladybird_Runtime
+      DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}
+  )
+endif()
 
 include("${SERENITY_SOURCE_DIR}/Meta/Lagom/get_linked_lagom_libraries.cmake")
 foreach (application IN LISTS ladybird_applications)

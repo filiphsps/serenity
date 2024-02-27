@@ -94,8 +94,13 @@ function(copy_resource_set subdir)
     set(inputs ${COPY_RESOURCES})
 
     if (APPLE)
+        set(OUTPUT "")
+        if (NOT IOS)
+            set(OUTPUT "Resources")
+        endif()
+
         target_sources(${COPY_TARGET} PRIVATE ${inputs})
-        set_source_files_properties(${inputs} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/${subdir}")
+        set_source_files_properties(${inputs} PROPERTIES MACOSX_PACKAGE_LOCATION "${OUTPUT}/${subdir}")
     else()
         set(outputs "")
         foreach (input IN LISTS inputs)
@@ -145,21 +150,23 @@ function(copy_resources_to_build base_directory bundle_target)
         DESTINATION ${base_directory} TARGET ${bundle_target}
     )
 
-    copy_resource_set(ladybird RESOURCES ${WEB_RESOURCES}
-        DESTINATION ${base_directory} TARGET ${bundle_target}
-    )
+    if (NOT IOS)
+        copy_resource_set(ladybird RESOURCES ${WEB_RESOURCES}
+            DESTINATION ${base_directory} TARGET ${bundle_target}
+        )
 
-    copy_resource_set(ladybird/templates RESOURCES ${WEB_TEMPLATES}
-        DESTINATION ${base_directory} TARGET ${bundle_target}
-    )
+        copy_resource_set(ladybird/templates RESOURCES ${WEB_TEMPLATES}
+            DESTINATION ${base_directory} TARGET ${bundle_target}
+        )
 
-    copy_resource_set(ladybird RESOURCES ${CONFIG_RESOURCES}
-        DESTINATION ${base_directory} TARGET ${bundle_target}
-    )
+        copy_resource_set(ladybird RESOURCES ${CONFIG_RESOURCES}
+            DESTINATION ${base_directory} TARGET ${bundle_target}
+        )
 
-    copy_resource_set(ladybird RESOURCES ${DOWNLOADED_RESOURCES}
-        DESTINATION ${base_directory} TARGET ${bundle_target}
-    )
+        copy_resource_set(ladybird RESOURCES ${DOWNLOADED_RESOURCES}
+            DESTINATION ${base_directory} TARGET ${bundle_target}
+        )
+    endif()
 
     add_dependencies(${bundle_target} "${bundle_target}_build_resource_files")
 endfunction()
@@ -170,8 +177,10 @@ function(install_ladybird_resources destination component)
     install(FILES ${32x32_ICONS} DESTINATION "${destination}/icons/32x32" COMPONENT ${component})
     install(FILES ${BROWSER_ICONS} DESTINATION "${destination}/icons/browser" COMPONENT ${component})
     install(FILES ${THEMES} DESTINATION "${destination}/themes" COMPONENT ${component})
-    install(FILES ${WEB_RESOURCES} DESTINATION "${destination}/ladybird" COMPONENT ${component})
-    install(FILES ${WEB_TEMPLATES} DESTINATION "${destination}/ladybird/templates" COMPONENT ${component})
-    install(FILES ${CONFIG_RESOURCES} DESTINATION "${destination}/ladybird" COMPONENT ${component})
-    install(FILES ${DOWNLOADED_RESOURCES} DESTINATION "${destination}/ladybird" COMPONENT ${component})
+    if (NOT IOS)
+        install(FILES ${WEB_RESOURCES} DESTINATION "${destination}/ladybird" COMPONENT ${component})
+        install(FILES ${WEB_TEMPLATES} DESTINATION "${destination}/ladybird/templates" COMPONENT ${component})
+        install(FILES ${CONFIG_RESOURCES} DESTINATION "${destination}/ladybird" COMPONENT ${component})
+        install(FILES ${DOWNLOADED_RESOURCES} DESTINATION "${destination}/ladybird" COMPONENT ${component})
+    endif()
 endfunction()

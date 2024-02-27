@@ -11,7 +11,7 @@
         <key>CFBundleGetInfoString</key>
         <string>${MACOSX_BUNDLE_INFO_STRING}</string>
         <key>CFBundleSignature</key>
-        <string></string>
+        <string>????</string>
         <key>CFBundleExecutable</key>
         <string>${MACOSX_BUNDLE_EXECUTABLE_NAME}</string>
         <key>CFBundleIdentifier</key>

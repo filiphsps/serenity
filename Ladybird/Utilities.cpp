@@ -52,8 +52,10 @@ void platform_init()
                 return home_lagom;
         }
         auto app_dir = MUST(application_directory());
-#ifdef AK_OS_MACOS
+#if defined(AK_OS_MACOS)
         return LexicalPath(app_dir).parent().append("Resources"sv).string();
+#elif defined(AK_OS_IOS)
+        return LexicalPath(app_dir).parent().string();
 #else
         return find_prefix(LexicalPath(app_dir)).append("share/Lagom"sv).string();
 #endif
