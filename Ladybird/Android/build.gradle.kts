@@ -1,8 +1,8 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
 
 plugins {
-    id("com.android.application") version "8.1.1"
-    id("org.jetbrains.kotlin.android") version "1.9.0"
+    id("com.android.application") version "8.3.0"
+    id("org.jetbrains.kotlin.android") version "1.9.20"
 }
 
 var cacheDir = System.getenv("SERENITY_CACHE_DIR") ?: "$buildDir/caches"
@@ -25,7 +25,7 @@ android {
     defaultConfig {
         applicationId = "org.serenityos.ladybird"
         minSdk = 30
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
