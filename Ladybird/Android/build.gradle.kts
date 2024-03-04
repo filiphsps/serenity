@@ -1,7 +1,7 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
 
 plugins {
-    id("com.android.application") version "8.1.1"
+    id("com.android.application") version "8.3.0"
     id("org.jetbrains.kotlin.android") version "1.9.0"
 }
 
@@ -42,7 +42,7 @@ android {
         ndk {
             // Specifies the ABI configurations of your native
             // libraries Gradle should build and package with your app.
-            abiFilters += listOf("x86_64", "arm64-v8a")
+            abiFilters += listOf("arm64-v8a")
         }
     }
 
