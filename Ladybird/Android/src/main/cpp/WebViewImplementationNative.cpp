@@ -14,6 +14,12 @@
 #include <jni.h>
 
 namespace Ladybird {
+template<typename T>
+static T scale_for_device(T size, float device_pixel_ratio)
+{
+    return size.template to_type<float>().scaled(device_pixel_ratio).template to_type<int>();
+}
+
 static Gfx::BitmapFormat to_gfx_bitmap_format(i32 f)
 {
     switch (f) {
@@ -28,7 +34,7 @@ WebViewImplementationNative::WebViewImplementationNative(jobject thiz)
     : m_java_instance(thiz)
 {
     // NOTE: m_java_instance's global ref is controlled by the JNI bindings
-    create_client(WebView::EnableCallgrindProfiling::No);
+    initialize_client(CreateNewClient::Yes);
 
     on_ready_to_paint = [this]() {
         JavaEnvironment env(global_vm);
@@ -43,7 +49,7 @@ WebViewImplementationNative::WebViewImplementationNative(jobject thiz)
     };
 }
 
-void WebViewImplementationNative::create_client(WebView::EnableCallgrindProfiling)
+void WebViewImplementationNative::initialize_client(CreateNewClient)
 {
     m_client_state = {};
 
@@ -56,11 +62,10 @@ void WebViewImplementationNative::create_client(WebView::EnableCallgrindProfilin
     };
 
     m_client_state.client_handle = MUST(Web::Crypto::generate_random_uuid());
-    client().async_set_window_handle(m_client_state.client_handle);
+    client().async_set_window_handle(m_client_state.page_index, m_client_state.client_handle);
 
-    client().async_set_device_pixels_per_css_pixel(m_device_pixel_ratio);
-
-    // FIXME: update_palette, update system fonts
+    client().async_set_device_pixels_per_css_pixel(m_client_state.page_index, m_device_pixel_ratio);
+    client().async_update_system_fonts(m_client_state.page_index, Gfx::FontDatabase::default_font_query(), Gfx::FontDatabase::fixed_width_font_query(), Gfx::FontDatabase::window_title_font_query());
 }
 
 void WebViewImplementationNative::paint_into_bitmap(void* android_bitmap_raw, AndroidBitmapInfo const& info)
@@ -90,17 +95,19 @@ void WebViewImplementationNative::paint_into_bitmap(void* android_bitmap_raw, An
     }
 }
 
-void WebViewImplementationNative::set_viewport_geometry(int w, int h)
+void WebViewImplementationNative::set_viewport_rect(Gfx::IntRect viewport_rect)
 {
-    m_viewport_rect = { { 0, 0 }, { w, h } };
-    client().async_set_viewport_rect(m_viewport_rect);
+    viewport_rect.set_size(scale_for_device(viewport_rect.size(), m_device_pixel_ratio));
+    m_viewport_rect = viewport_rect;
+
+    client().async_set_viewport_rect(m_client_state.page_index, m_viewport_rect.to_type<Web::DevicePixels>());
     handle_resize();
 }
 
 void WebViewImplementationNative::set_device_pixel_ratio(float f)
 {
     m_device_pixel_ratio = f;
-    client().async_set_device_pixels_per_css_pixel(m_device_pixel_ratio);
+    client().async_set_device_pixels_per_css_pixel(m_client_state.page_index, m_device_pixel_ratio * m_zoom_level);
 }
 
 NonnullRefPtr<WebView::WebContentClient> WebViewImplementationNative::bind_web_content_client()

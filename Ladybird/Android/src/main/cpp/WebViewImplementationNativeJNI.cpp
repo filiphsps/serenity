@@ -74,7 +74,7 @@ extern "C" JNIEXPORT void JNICALL
 Java_org_serenityos_ladybird_WebViewImplementation_nativeSetViewportGeometry(JNIEnv*, jobject /* thiz */, jlong instance, jint w, jint h)
 {
     auto* impl = reinterpret_cast<WebViewImplementationNative*>(instance);
-    impl->set_viewport_geometry(w, h);
+    impl->set_viewport_rect({ { 0, 0 }, { w, h } });
 }
 
 extern "C" JNIEXPORT void JNICALL
